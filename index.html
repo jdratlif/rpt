@@ -12,345 +12,362 @@
     <div class="container">
         <h1>Retirement Projection Tool</h1>
 
-        <!-- Ages Section -->
-        <section class="top-section" id="ages-section">
-            <h2 class="section-title">Ages</h2>
-            <div class="top-person-column universal ages-universal">
-                <h3 class="person-title">Universal</h3>
-                <div class="top-input-grid horizontal">
-                    <div class="input-group">
-                        <label for="retirement-age">Retirement Age
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Age primary user will retire</span>
-                            </span>
-                        </label>
-                        <input type="number" id="retirement-age" name="retirement-age" min="1" max="120" value="60"
-                            placeholder="e.g., 65" />
-                    </div>
-                    <div class="input-group">
-                        <label for="projection-years">Projection Years
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Run the projection for this many years</span>
-                            </span>
-                        </label>
-                        <input type="number" id="projection-years" name="projection-years" min="1" max="99" value="40"
-                            placeholder="e.g., 40" />
-                    </div>
-                    <div class="input-group">
-                        <label for="widow-age">Widow Age
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Age at which spouse becomes a widow. Set equal to primary
-                                    current age if single.</span>
-                            </span>
-                        </label>
-                        <input type="number" id="widow-age" name="widow-age" min="0" max="120" value="78"
-                            placeholder="e.g., 85" />
-                    </div>
-                </div>
-            </div>
-            <div class="top-input-grid">
-                <div class="top-person-column primary">
-                    <h3 class="person-title">Primary</h3>
-                    <div class="input-group">
-                        <label for="primary-current-age">Current Age
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Current Age of primary</span>
-                            </span>
-                        </label>
-                        <input type="number" id="primary-current-age" name="primary-current-age" min="1" max="120"
-                            value="55" placeholder="e.g., 45" />
-                    </div>
-                    <div class="input-group">
-                        <label for="primary-social-security-age">Social Security Age
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Age at which Social Security is claimed</span>
-                            </span>
-                        </label>
-                        <input type="number" id="primary-social-security-age" name="primary-social-security-age"
-                            min="62" max="67" value="67" placeholder="e.g., 67" />
-                    </div>
-                    <div class="input-group">
-                        <label for="primary-annuity-age">Annuity Age
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Age at which annuity/pension payments begin. Set annuity
-                                    income to 0 if no annuity/pension.</span>
-                            </span>
-                        </label>
-                        <input type="number" id="primary-annuity-age" name="primary-annuity-age" min="1" max="120"
-                            value="67" placeholder="e.g., 62" />
+        <form id="retirement-form">
+            <!-- Ages Section -->
+            <section class="top-section" id="ages-section">
+                <h2 class="section-title">Ages</h2>
+                <div class="top-person-column universal ages-universal">
+                    <h3 class="person-title">Universal</h3>
+                    <div class="top-input-grid horizontal">
+                        <div class="input-group">
+                            <label for="retirement-age">Retirement Age
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Age primary user will retire</span>
+                                </span>
+                            </label>
+                            <input type="number" id="retirement-age" name="retirement-age" min="1" max="120" value="60"
+                                placeholder="e.g., 65" />
+                        </div>
+                        <div class="input-group">
+                            <label for="projection-years">Projection Years
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Run the projection for this many years</span>
+                                </span>
+                            </label>
+                            <input type="number" id="projection-years" name="projection-years" min="1" max="99"
+                                value="40" placeholder="e.g., 40" />
+                        </div>
+                        <div class="input-group">
+                            <label for="widow-age">Widow Age
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Age at which spouse becomes a widow. Set equal to primary
+                                        current age if single.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="widow-age" name="widow-age" min="0" max="120" value="78"
+                                placeholder="e.g., 85" />
+                        </div>
                     </div>
                 </div>
-                <div class="top-person-column spouse">
-                    <h3 class="person-title">Spouse</h3>
-                    <div class="input-group">
-                        <label for="spouse-current-age">Current Age
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Spouse's current age</span>
-                            </span>
-                        </label>
-                        <input type="number" id="spouse-current-age" name="spouse-current-age" min="1" max="120"
-                            value="53" placeholder="e.g., 42" />
+                <div class="top-input-grid">
+                    <div class="top-person-column primary">
+                        <h3 class="person-title">Primary</h3>
+                        <div class="input-group">
+                            <label for="primary-current-age">Current Age
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Current Age of primary</span>
+                                </span>
+                            </label>
+                            <input type="number" id="primary-current-age" name="primary-current-age" min="1" max="120"
+                                value="55" placeholder="e.g., 45" />
+                        </div>
+                        <div class="input-group">
+                            <label for="primary-social-security-age">Social Security Age
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Age at which Social Security is claimed</span>
+                                </span>
+                            </label>
+                            <input type="number" id="primary-social-security-age" name="primary-social-security-age"
+                                min="62" max="67" value="67" placeholder="e.g., 67" />
+                        </div>
+                        <div class="input-group">
+                            <label for="primary-annuity-age">Annuity Age
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Age at which annuity/pension payments begin. Set annuity
+                                        income to 0 if no annuity/pension.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="primary-annuity-age" name="primary-annuity-age" min="1" max="120"
+                                value="67" placeholder="e.g., 62" />
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label for="spouse-social-security-age">Social Security Age
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Age at which spouse claims social security</span>
-                            </span>
-                        </label>
-                        <input type="number" id="spouse-social-security-age" name="spouse-social-security-age" min="62"
-                            max="70" value="62" placeholder="e.g., 67" />
-                    </div>
-                    <div class="input-group">
-                        <label for="spouse-annuity-age">Annuity Age
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Age at which annuity/pension payments begin. Set annuity
-                                    income to 0 if no annuity/pension.</span>
-                            </span>
-                        </label>
-                        <input type="number" id="spouse-annuity-age" name="spouse-annuity-age" min="1" max="120"
-                            value="62" placeholder="e.g., 62" />
+                    <div class="top-person-column spouse">
+                        <h3 class="person-title">Spouse</h3>
+                        <div class="input-group">
+                            <label for="spouse-current-age">Current Age
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Spouse's current age</span>
+                                </span>
+                            </label>
+                            <input type="number" id="spouse-current-age" name="spouse-current-age" min="1" max="120"
+                                value="53" placeholder="e.g., 42" />
+                        </div>
+                        <div class="input-group">
+                            <label for="spouse-social-security-age">Social Security Age
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Age at which spouse claims social security</span>
+                                </span>
+                            </label>
+                            <input type="number" id="spouse-social-security-age" name="spouse-social-security-age"
+                                min="62" max="70" value="62" placeholder="e.g., 67" />
+                        </div>
+                        <div class="input-group">
+                            <label for="spouse-annuity-age">Annuity Age
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Age at which annuity/pension payments begin. Set annuity
+                                        income to 0 if no annuity/pension.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="spouse-annuity-age" name="spouse-annuity-age" min="1" max="120"
+                                value="62" placeholder="e.g., 62" />
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Portfolio Section -->
-        <section class="top-section" id="portfolio-section">
-            <h2 class="section-title">Portfolio</h2>
-            <div class="top-person-column portfolio-composition">
-                <h3 class="person-title">Composition and Returns</h3>
-                <div class="top-input-grid horizontal">
-                    <div class="input-group">
-                        <label for="stock-percentage">Stock %
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Percentage of the portfolio allocated to equities</span>
-                            </span>
-                        </label>
-                        <div class="percent-input-wrapper">
-                            <input type="text" inputmode="decimal" class="percent-input" id="stock-percentage"
-                                name="stock-percentage" value="70" placeholder="e.g., 70" />
-                            <span class="percent-symbol">%</span>
+            <!-- Portfolio Section -->
+            <section class="top-section" id="portfolio-section">
+                <h2 class="section-title">Portfolio</h2>
+                <div class="top-person-column portfolio-composition">
+                    <h3 class="person-title">Composition and Returns</h3>
+                    <div class="top-input-grid horizontal">
+                        <div class="input-group">
+                            <label for="stock-percentage">Stock %
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Percentage of the portfolio allocated to equities</span>
+                                </span>
+                            </label>
+                            <div class="percent-input-wrapper">
+                                <input type="text" inputmode="decimal" class="percent-input" id="stock-percentage"
+                                    name="stock-percentage" value="70" placeholder="e.g., 70" />
+                                <span class="percent-symbol">%</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="bond-percentage">Bond %
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Percentage of the portfolio allocated to fixed income.</span>
-                            </span>
-                        </label>
-                        <div class="percent-input-wrapper">
-                            <input type="text" inputmode="decimal" class="percent-input" id="bond-percentage"
-                                name="bond-percentage" value="30" placeholder="e.g., 30" disabled />
-                            <span class="percent-symbol">%</span>
+                        <div class="input-group">
+                            <label for="bond-percentage">Bond %
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Percentage of the portfolio allocated to fixed
+                                        income.</span>
+                                </span>
+                            </label>
+                            <div class="percent-input-wrapper">
+                                <input type="text" inputmode="decimal" class="percent-input" id="bond-percentage"
+                                    name="bond-percentage" value="30" placeholder="e.g., 30" disabled />
+                                <span class="percent-symbol">%</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="stock-return-percentage">Stock Return %
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Expected annual rate of return for stock investments</span>
-                            </span>
-                        </label>
-                        <div class="percent-input-wrapper">
-                            <input type="text" inputmode="decimal" class="percent-input" id="stock-return-percentage"
-                                name="stock-return-percentage" value="7" placeholder="e.g., 7" />
-                            <span class="percent-symbol">%</span>
+                        <div class="input-group">
+                            <label for="stock-return-percentage">Stock Return %
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Expected annual rate of return for stock
+                                        investments</span>
+                                </span>
+                            </label>
+                            <div class="percent-input-wrapper">
+                                <input type="text" inputmode="decimal" class="percent-input"
+                                    id="stock-return-percentage" name="stock-return-percentage" value="7"
+                                    placeholder="e.g., 7" />
+                                <span class="percent-symbol">%</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="bond-return-percentage">Bond Return %
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Expected annual rate of return for bond investments</span>
-                            </span>
-                        </label>
-                        <div class="percent-input-wrapper">
-                            <input type="text" inputmode="decimal" class="percent-input" id="bond-return-percentage"
-                                name="bond-return-percentage" value="3" placeholder="e.g., 3" />
-                            <span class="percent-symbol">%</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="top-input-grid">
-                <div class="top-person-column">
-                    <h3 class="person-title">Balances</h3>
-                    <div class="input-group">
-                        <label for="traditional-retirement-balance">Traditional
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Current balance in traditional retirement accounts (401k,
-                                    IRA, etc.)</span>
-                            </span>
-                        </label>
-                        <div class="currency-input-wrapper">
-                            <span class="currency-symbol">$</span>
-                            <input type="text" inputmode="decimal" class="currency-input"
-                                id="traditional-retirement-balance" name="traditional-retirement-balance"
-                                value="1000000" placeholder="e.g., 1,000,000" />
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="roth-retirement-balance">Roth
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Current balance in Roth retirement accounts (Roth IRA, Roth
-                                    401k, etc.)</span>
-                            </span>
-                        </label>
-                        <div class="currency-input-wrapper">
-                            <span class="currency-symbol">$</span>
-                            <input type="text" inputmode="decimal" class="currency-input" id="roth-retirement-balance"
-                                name="roth-retirement-balance" value="0" placeholder="e.g., 0" />
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="taxable-balance">Taxable
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Current balance in taxable investment accounts</span>
-                            </span>
-                        </label>
-                        <div class="currency-input-wrapper">
-                            <span class="currency-symbol">$</span>
-                            <input type="text" inputmode="decimal" class="currency-input" id="taxable-balance"
-                                name="taxable-balance" value="0" placeholder="e.g., 0" />
+                        <div class="input-group">
+                            <label for="bond-return-percentage">Bond Return %
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Expected annual rate of return for bond
+                                        investments</span>
+                                </span>
+                            </label>
+                            <div class="percent-input-wrapper">
+                                <input type="text" inputmode="decimal" class="percent-input" id="bond-return-percentage"
+                                    name="bond-return-percentage" value="3" placeholder="e.g., 3" />
+                                <span class="percent-symbol">%</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="top-person-column">
-                    <h3 class="person-title">Pre-Retirement Contributions</h3>
-                    <div class="input-group">
-                        <label for="traditional-annual-contribution">Traditional
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Annual contribution to traditional retirement accounts</span>
-                            </span>
-                        </label>
-                        <div class="currency-input-wrapper">
-                            <span class="currency-symbol">$</span>
-                            <input type="text" inputmode="decimal" class="currency-input"
-                                id="traditional-annual-contribution" name="traditional-annual-contribution" value="0"
-                                placeholder="e.g., 0" />
+                <div class="top-input-grid">
+                    <div class="top-person-column">
+                        <h3 class="person-title">Balances</h3>
+                        <div class="input-group">
+                            <label for="traditional-retirement-balance">Traditional
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Current balance in traditional retirement accounts (401k,
+                                        IRA, etc.)</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="traditional-retirement-balance" name="traditional-retirement-balance"
+                                    value="1000000" placeholder="e.g., 1,000,000" />
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="roth-retirement-balance">Roth
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Current balance in Roth retirement accounts (Roth IRA,
+                                        Roth
+                                        401k, etc.)</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="roth-retirement-balance" name="roth-retirement-balance" value="0"
+                                    placeholder="e.g., 0" />
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="taxable-balance">Taxable
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Current balance in taxable investment accounts</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input" id="taxable-balance"
+                                    name="taxable-balance" value="0" placeholder="e.g., 0" />
+                            </div>
                         </div>
                     </div>
-                    <div class="input-group">
-                        <label for="roth-annual-contribution">Roth
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Annual contribution to Roth retirement accounts</span>
-                            </span>
-                        </label>
-                        <div class="currency-input-wrapper">
-                            <span class="currency-symbol">$</span>
-                            <input type="text" inputmode="decimal" class="currency-input" id="roth-annual-contribution"
-                                name="roth-annual-contribution" value="0" placeholder="e.g., 0" />
+                    <div class="top-person-column">
+                        <h3 class="person-title">Pre-Retirement Contributions</h3>
+                        <div class="input-group">
+                            <label for="traditional-annual-contribution">Traditional
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Annual contribution to traditional retirement
+                                        accounts</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="traditional-annual-contribution" name="traditional-annual-contribution"
+                                    value="0" placeholder="e.g., 0" />
+                            </div>
                         </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="taxable-annual-contribution">Taxable
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Annual contribution to taxable investment accounts</span>
-                            </span>
-                        </label>
-                        <div class="currency-input-wrapper">
-                            <span class="currency-symbol">$</span>
-                            <input type="text" inputmode="decimal" class="currency-input"
-                                id="taxable-annual-contribution" name="taxable-annual-contribution" value="0"
-                                placeholder="e.g., 0" />
+                        <div class="input-group">
+                            <label for="roth-annual-contribution">Roth
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Annual contribution to Roth retirement accounts</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="roth-annual-contribution" name="roth-annual-contribution" value="0"
+                                    placeholder="e.g., 0" />
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="taxable-annual-contribution">Taxable
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Annual contribution to taxable investment accounts</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="taxable-annual-contribution" name="taxable-annual-contribution" value="0"
+                                    placeholder="e.g., 0" />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Income Section -->
-        <section class="top-section" id="income-section">
-            <h2 class="section-title">Income</h2>
-            <div class="top-input-grid">
-                <div class="top-person-column">
-                    <h3 class="person-title">Social Security</h3>
-                    <div class="input-group">
-                        <label for="social-security-primary-benefit">Primary
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Expected monthly Social Security retirement benefit at full
-                                    retirement age</span>
-                            </span>
-                        </label>
-                        <div class="currency-input-wrapper">
-                            <span class="currency-symbol">$</span>
-                            <input type="text" inputmode="decimal" class="currency-input"
-                                id="social-security-primary-benefit" name="social-security-primary-benefit" value="2500"
-                                placeholder="e.g., 2,000" />
+            <!-- Income Section -->
+            <section class="top-section" id="income-section">
+                <h2 class="section-title">Income</h2>
+                <div class="top-input-grid">
+                    <div class="top-person-column">
+                        <h3 class="person-title">Social Security</h3>
+                        <div class="input-group">
+                            <label for="social-security-primary-benefit">Primary
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Expected monthly Social Security retirement benefit at
+                                        full
+                                        retirement age</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="social-security-primary-benefit" name="social-security-primary-benefit"
+                                    value="2500" placeholder="e.g., 2,000" />
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="social-security-secondary-benefit">Secondary
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Expected monthly Social Security retirement benefit at
+                                        full
+                                        retirement age</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="social-security-secondary-benefit" name="social-security-secondary-benefit"
+                                    value="2000" placeholder="e.g., 1,000" />
+                            </div>
                         </div>
                     </div>
-                    <div class="input-group">
-                        <label for="social-security-secondary-benefit">Secondary
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Expected monthly Social Security retirement benefit at full
-                                    retirement age</span>
-                            </span>
-                        </label>
-                        <div class="currency-input-wrapper">
-                            <span class="currency-symbol">$</span>
-                            <input type="text" inputmode="decimal" class="currency-input"
-                                id="social-security-secondary-benefit" name="social-security-secondary-benefit"
-                                value="2000" placeholder="e.g., 1,000" />
+                    <div class="top-person-column">
+                        <h3 class="person-title">Annuity</h3>
+                        <div class="input-group">
+                            <label for="annuity-primary-income">Primary
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Monthly annuity/pension income for the primary person.
+                                        Set
+                                        to 0 if no annuity/pension.</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="annuity-primary-income" name="annuity-primary-income" value="0"
+                                    placeholder="e.g., 0" />
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="annuity-secondary-income">Secondary
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Monthly annuity/pension income for the secondary person.
+                                        Set
+                                        to 0 if no annuity/pension.</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="annuity-secondary-income" name="annuity-secondary-income" value="0"
+                                    placeholder="e.g., 0" />
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="top-person-column">
-                    <h3 class="person-title">Annuity</h3>
-                    <div class="input-group">
-                        <label for="annuity-primary-income">Primary
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Monthly annuity/pension income for the primary person. Set
-                                    to 0 if no annuity/pension.</span>
-                            </span>
-                        </label>
-                        <div class="currency-input-wrapper">
-                            <span class="currency-symbol">$</span>
-                            <input type="text" inputmode="decimal" class="currency-input" id="annuity-primary-income"
-                                name="annuity-primary-income" value="0" placeholder="e.g., 0" />
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="annuity-secondary-income">Secondary
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Monthly annuity/pension income for the secondary person. Set
-                                    to 0 if no annuity/pension.</span>
-                            </span>
-                        </label>
-                        <div class="currency-input-wrapper">
-                            <span class="currency-symbol">$</span>
-                            <input type="text" inputmode="decimal" class="currency-input" id="annuity-secondary-income"
-                                name="annuity-secondary-income" value="0" placeholder="e.g., 0" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Actions -->
-        <div class="actions">
-            <button type="button" id="calculate-btn">Calculate</button>
-        </div>
+            <!-- Actions -->
+            <div class="actions">
+                <button type="button" id="calculate-btn">Calculate</button>
+                <button type="button" id="reset-btn">Reset</button>
+            </div>
+        </form>
     </div>
 
     <script src="script.js"></script>

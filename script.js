@@ -78,3 +78,15 @@ const stockPercentageInput = document.getElementById('stock-percentage');
 stockPercentageInput.addEventListener('input', updateBondPercentage);
 stockPercentageInput.addEventListener('blur', updateBondPercentage);
 updateBondPercentage();
+
+// Manually restore each field's original HTML value (defaultValue) instead of using a
+// native reset button, since the browser's "reset" event fires *before* fields are
+// reset, which would reformat stale values instead of the restored defaults.
+document.getElementById('reset-btn').addEventListener('click', () => {
+    document.querySelectorAll('#retirement-form input').forEach((input) => {
+        input.value = input.defaultValue;
+    });
+    document.querySelectorAll('.currency-input').forEach(formatCurrencyInput);
+    document.querySelectorAll('.percent-input:not(#bond-percentage)').forEach(formatPercentInput);
+    updateBondPercentage();
+});
