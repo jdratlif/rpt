@@ -316,6 +316,81 @@
             </div>
         </section>
 
+        <!-- Portfolio Section -->
+        <section class="top-section" id="portfolio-section">
+            <h2 class="section-title">Portfolio</h2>
+            <div class="top-input-grid">
+                <div class="top-person-column">
+                    <h3 class="person-title">Balances</h3>
+                    <div class="input-group">
+                        <label for="traditional-retirement-balance">Traditional
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Current balance in traditional retirement accounts (401k,
+                                    IRA, etc.)</span>
+                            </span>
+                        </label>
+                        <input type="number" id="traditional-retirement-balance" name="traditional-retirement-balance"
+                            min="0" value="1000000" placeholder="e.g., 1000000" />
+                    </div>
+                    <div class="input-group">
+                        <label for="roth-retirement-balance">Roth
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Current balance in Roth retirement accounts (Roth IRA, Roth
+                                    401k, etc.)</span>
+                            </span>
+                        </label>
+                        <input type="number" id="roth-retirement-balance" name="roth-retirement-balance" min="0"
+                            value="0" placeholder="e.g., 0" />
+                    </div>
+                    <div class="input-group">
+                        <label for="taxable-balance">Taxable
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Current balance in taxable investment accounts</span>
+                            </span>
+                        </label>
+                        <input type="number" id="taxable-balance" name="taxable-balance" min="0" value="0"
+                            placeholder="e.g., 0" />
+                    </div>
+                </div>
+                <div class="top-person-column">
+                    <h3 class="person-title">Pre-Retirement Contributions</h3>
+                    <div class="input-group">
+                        <label for="traditional-annual-contribution">Traditional
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Annual contribution to traditional retirement accounts</span>
+                            </span>
+                        </label>
+                        <input type="number" id="traditional-annual-contribution" name="traditional-annual-contribution"
+                            min="0" value="0" placeholder="e.g., 0" />
+                    </div>
+                    <div class="input-group">
+                        <label for="roth-annual-contribution">Roth
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Annual contribution to Roth retirement accounts</span>
+                            </span>
+                        </label>
+                        <input type="number" id="roth-annual-contribution" name="roth-annual-contribution" min="0"
+                            value="0" placeholder="e.g., 0" />
+                    </div>
+                    <div class="input-group">
+                        <label for="taxable-annual-contribution">Taxable
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Annual contribution to taxable investment accounts</span>
+                            </span>
+                        </label>
+                        <input type="number" id="taxable-annual-contribution" name="taxable-annual-contribution" min="0"
+                            value="0" placeholder="e.g., 0" />
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Actions -->
         <div class="actions">
             <button type="button" id="calculate-btn">Calculate</button>
