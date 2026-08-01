@@ -36,7 +36,7 @@
             border-bottom: 2px solid #3498db;
         }
 
-        .section {
+        .top-section {
             margin-bottom: 30px;
             padding: 20px;
             border-radius: 6px;
@@ -44,12 +44,54 @@
             border: 1px solid #e0e0e0;
         }
 
-        .section-title {
+        .top-section .section-title {
             font-size: 1.3rem;
             color: #2c3e50;
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 1px solid #ddd;
+        }
+
+        .top-input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .top-input-grid.horizontal {
+            display: flex;
+            align-items: flex-start;
+            gap: 30px;
+            width: 100%;
+        }
+
+        .top-input-grid.horizontal .input-group {
+            flex: 1;
+            max-width: none;
+        }
+
+        .top-person-column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-person-column .person-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .top-person-column.primary .person-title {
+            border-bottom-color: #3498db;
+            color: #2c3e50;
+        }
+
+        .top-person-column.spouse .person-title {
+            border-bottom-color: #27ae60;
+            color: #27ae60;
         }
 
         .input-group {
@@ -77,36 +119,6 @@
             border-color: #3498db;
         }
 
-        .input-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        .person-column {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .person-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #ddd;
-        }
-
-        .person-column.primary .person-title {
-            border-bottom-color: #3498db;
-            color: #2c3e50;
-        }
-
-        .person-column.spouse .person-title {
-            border-bottom-color: #27ae60;
-            color: #27ae60;
-        }
-
         .actions {
             text-align: center;
             margin-top: 30px;
@@ -132,23 +144,34 @@
     <div class="container">
         <h1>Retirement Projection Tool</h1>
 
-        <!-- Ages Section -->
-        <section class="section" id="ages-section">
-            <h2 class="section-title">Ages</h2>
-            <div class="input-grid">
-                <div class="person-column primary">
+        <!-- Universal Ages Section -->
+        <section class="top-section" id="universal-section">
+            <h2 class="section-title">Universal Ages</h2>
+            <div class="top-input-grid horizontal">
+                <div class="input-group">
+                    <label for="retirement-age">Retirement Age</label>
+                    <input type="number" id="retirement-age" name="retirement-age" min="0" max="120" value="60" placeholder="e.g., 65">
+                </div>
+                <div class="input-group">
+                    <label for="projection-age">Projection Age</label>
+                    <input type="number" id="projection-age" name="projection-age" min="0" max="120" value="99" placeholder="e.g., 90">
+                </div>
+                <div class="input-group">
+                    <label for="widow-age">Widow Age</label>
+                    <input type="number" id="widow-age" name="widow-age" min="0" max="120" value="78" placeholder="e.g., 85">
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Ages Section -->
+        <section class="top-section" id="top-section">
+            <h2 class="section-title">Key Ages</h2>
+            <div class="top-input-grid">
+                <div class="top-person-column primary">
                     <h3 class="person-title">Primary</h3>
                     <div class="input-group">
                         <label for="primary-current-age">Current Age</label>
                         <input type="number" id="primary-current-age" name="primary-current-age" min="0" max="120" value="55" placeholder="e.g., 45">
-                    </div>
-                    <div class="input-group">
-                        <label for="primary-retirement-age">Retirement Age</label>
-                        <input type="number" id="primary-retirement-age" name="primary-retirement-age" min="0" max="120" value="60" placeholder="e.g., 65">
-                    </div>
-                    <div class="input-group">
-                        <label for="primary-projection-age">Projection Age</label>
-                        <input type="number" id="primary-projection-age" name="primary-projection-age" min="0" max="120" value="99" placeholder="e.g., 90">
                     </div>
                     <div class="input-group">
                         <label for="primary-social-security-age">Social Security Age</label>
@@ -159,19 +182,15 @@
                         <input type="number" id="primary-annuity-age" name="primary-annuity-age" min="0" max="120" value="67" placeholder="e.g., 62">
                     </div>
                 </div>
-                <div class="person-column spouse">
+                <div class="top-person-column spouse">
                     <h3 class="person-title">Spouse</h3>
                     <div class="input-group">
-                        <label for="spouse-age">Spouse Age</label>
-                        <input type="number" id="spouse-age" name="spouse-age" min="0" max="120" value="53" placeholder="e.g., 42">
+                        <label for="spouse-current-age">Current Age</label>
+                        <input type="number" id="spouse-current-age" name="spouse-current-age" min="0" max="120" value="53" placeholder="e.g., 42">
                     </div>
                     <div class="input-group">
                         <label for="spouse-social-security-age">Social Security Age</label>
                         <input type="number" id="spouse-social-security-age" name="spouse-social-security-age" min="0" max="120" value="67" placeholder="e.g., 67">
-                    </div>
-                    <div class="input-group">
-                        <label for="spouse-widow-age">Widow Age</label>
-                        <input type="number" id="spouse-widow-age" name="spouse-widow-age" min="0" max="120" value="78" placeholder="e.g., 85">
                     </div>
                     <div class="input-group">
                         <label for="spouse-annuity-age">Annuity Age</label>
