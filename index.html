@@ -119,6 +119,61 @@
             border-color: #3498db;
         }
 
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            margin-left: 8px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #3498db;
+            color: white;
+            text-align: center;
+            line-height: 16px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .tooltip:hover {
+            background-color: #2980b9;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
         .actions {
             text-align: center;
             margin-top: 30px;
@@ -149,7 +204,13 @@
             <h2 class="section-title">Universal Ages</h2>
             <div class="top-input-grid horizontal">
                 <div class="input-group">
-                    <label for="retirement-age">Retirement Age</label>
+                    <label for="retirement-age">
+                        Retirement Age
+                        <span class="tooltip">
+                            ?
+                            <span class="tooltip-text">Age primary user will retire</span>
+                        </span>
+                    </label>
                     <input type="number" id="retirement-age" name="retirement-age" min="0" max="120" value="60" placeholder="e.g., 65">
                 </div>
                 <div class="input-group">
