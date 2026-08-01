@@ -122,6 +122,24 @@
             border-color: #3498db;
         }
 
+        .currency-input-wrapper {
+            position: relative;
+        }
+
+        .currency-input-wrapper .currency-symbol {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #555;
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
+        .currency-input-wrapper input {
+            padding-left: 22px;
+        }
+
         .tooltip {
             position: relative;
             display: inline-block;
@@ -330,8 +348,12 @@
                                     IRA, etc.)</span>
                             </span>
                         </label>
-                        <input type="number" id="traditional-retirement-balance" name="traditional-retirement-balance"
-                            min="0" value="1000000" placeholder="e.g., 1000000" />
+                        <div class="currency-input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input type="text" inputmode="decimal" class="currency-input"
+                                id="traditional-retirement-balance" name="traditional-retirement-balance"
+                                value="1000000" placeholder="e.g., 1,000,000" />
+                        </div>
                     </div>
                     <div class="input-group">
                         <label for="roth-retirement-balance">Roth
@@ -341,8 +363,11 @@
                                     401k, etc.)</span>
                             </span>
                         </label>
-                        <input type="number" id="roth-retirement-balance" name="roth-retirement-balance" min="0"
-                            value="0" placeholder="e.g., 0" />
+                        <div class="currency-input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input type="text" inputmode="decimal" class="currency-input" id="roth-retirement-balance"
+                                name="roth-retirement-balance" value="0" placeholder="e.g., 0" />
+                        </div>
                     </div>
                     <div class="input-group">
                         <label for="taxable-balance">Taxable
@@ -351,8 +376,11 @@
                                 <span class="tooltip-text">Current balance in taxable investment accounts</span>
                             </span>
                         </label>
-                        <input type="number" id="taxable-balance" name="taxable-balance" min="0" value="0"
-                            placeholder="e.g., 0" />
+                        <div class="currency-input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input type="text" inputmode="decimal" class="currency-input" id="taxable-balance"
+                                name="taxable-balance" value="0" placeholder="e.g., 0" />
+                        </div>
                     </div>
                 </div>
                 <div class="top-person-column">
@@ -364,8 +392,12 @@
                                 <span class="tooltip-text">Annual contribution to traditional retirement accounts</span>
                             </span>
                         </label>
-                        <input type="number" id="traditional-annual-contribution" name="traditional-annual-contribution"
-                            min="0" value="0" placeholder="e.g., 0" />
+                        <div class="currency-input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input type="text" inputmode="decimal" class="currency-input"
+                                id="traditional-annual-contribution" name="traditional-annual-contribution" value="0"
+                                placeholder="e.g., 0" />
+                        </div>
                     </div>
                     <div class="input-group">
                         <label for="roth-annual-contribution">Roth
@@ -374,8 +406,11 @@
                                 <span class="tooltip-text">Annual contribution to Roth retirement accounts</span>
                             </span>
                         </label>
-                        <input type="number" id="roth-annual-contribution" name="roth-annual-contribution" min="0"
-                            value="0" placeholder="e.g., 0" />
+                        <div class="currency-input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input type="text" inputmode="decimal" class="currency-input" id="roth-annual-contribution"
+                                name="roth-annual-contribution" value="0" placeholder="e.g., 0" />
+                        </div>
                     </div>
                     <div class="input-group">
                         <label for="taxable-annual-contribution">Taxable
@@ -384,8 +419,12 @@
                                 <span class="tooltip-text">Annual contribution to taxable investment accounts</span>
                             </span>
                         </label>
-                        <input type="number" id="taxable-annual-contribution" name="taxable-annual-contribution" min="0"
-                            value="0" placeholder="e.g., 0" />
+                        <div class="currency-input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input type="text" inputmode="decimal" class="currency-input"
+                                id="taxable-annual-contribution" name="taxable-annual-contribution" value="0"
+                                placeholder="e.g., 0" />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -398,7 +437,45 @@
     </div>
 
     <script>
-        // JavaScript will be added in the next step
+        // Strips a currency input down to digits/decimal, then re-inserts thousands
+        // separators (e.g. "1000000" -> "1,000,000"). Keeps up to 2 decimal places.
+        function formatCurrencyInput(input) {
+            const raw = input.value.replace(/[^\d.]/g, '');
+            if (raw === '') {
+                input.value = '';
+                return;
+            }
+
+            const [wholeRaw, ...decimalParts] = raw.split('.');
+            const whole = wholeRaw.replace(/^0+(?=\d)/, '') || '0';
+            const formattedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+            if (decimalParts.length > 0) {
+                const decimal = decimalParts.join('').slice(0, 2);
+                input.value = `${formattedWhole}.${decimal}`;
+            } else {
+                input.value = formattedWhole;
+            }
+        }
+
+        // Returns the numeric value of a formatted currency input (commas stripped).
+        function parseCurrencyInput(input) {
+            const raw = input.value.replace(/[^\d.]/g, '');
+            return raw === '' ? 0 : parseFloat(raw);
+        }
+
+        document.querySelectorAll('.currency-input').forEach((input) => {
+            formatCurrencyInput(input);
+
+            input.addEventListener('input', () => {
+                // Preserve cursor position relative to the end of the value so
+                // typing/deleting in the middle of a number doesn't jump the caret.
+                const distanceFromEnd = input.value.length - input.selectionStart;
+                formatCurrencyInput(input);
+                const newPos = input.value.length - distanceFromEnd;
+                input.setSelectionRange(newPos, newPos);
+            });
+        });
     </script>
 </body>
 
