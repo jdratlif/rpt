@@ -1,8 +1,9 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Retirement Projection Tool</title>
     <style>
         * {
@@ -12,7 +13,9 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            font-family:
+                -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+                sans-serif;
             line-height: 1.6;
             color: #333;
             background-color: #f5f5f5;
@@ -195,6 +198,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Retirement Projection Tool</h1>
@@ -204,22 +208,35 @@
             <h2 class="section-title">Universal Ages</h2>
             <div class="top-input-grid horizontal">
                 <div class="input-group">
-                    <label for="retirement-age">
-                        Retirement Age
+                    <label for="retirement-age">Retirement Age
                         <span class="tooltip">
                             ?
                             <span class="tooltip-text">Age primary user will retire</span>
                         </span>
                     </label>
-                    <input type="number" id="retirement-age" name="retirement-age" min="0" max="120" value="60" placeholder="e.g., 65">
+                    <input type="number" id="retirement-age" name="retirement-age" min="1" max="120" value="60"
+                        placeholder="e.g., 65" />
                 </div>
                 <div class="input-group">
-                    <label for="projection-age">Projection Age</label>
-                    <input type="number" id="projection-age" name="projection-age" min="0" max="120" value="99" placeholder="e.g., 90">
+                    <label for="projection-years">Projection Years
+                        <span class="tooltip">
+                            ?
+                            <span class="tooltip-text">Run the projection for this many years</span>
+                        </span>
+                    </label>
+                    <input type="number" id="projection-years" name="projection-years" min="1" max="99" value="40"
+                        placeholder="e.g., 40" />
                 </div>
                 <div class="input-group">
-                    <label for="widow-age">Widow Age</label>
-                    <input type="number" id="widow-age" name="widow-age" min="0" max="120" value="78" placeholder="e.g., 85">
+                    <label for="widow-age">Widow Age
+                        <span class="tooltip">
+                            ?
+                            <span class="tooltip-text">Age at which spouse becomes a widow. Set equal to primary
+                                current age if single.</span>
+                        </span>
+                    </label>
+                    <input type="number" id="widow-age" name="widow-age" min="0" max="120" value="78"
+                        placeholder="e.g., 85" />
                 </div>
             </div>
         </section>
@@ -231,31 +248,69 @@
                 <div class="top-person-column primary">
                     <h3 class="person-title">Primary</h3>
                     <div class="input-group">
-                        <label for="primary-current-age">Current Age</label>
-                        <input type="number" id="primary-current-age" name="primary-current-age" min="0" max="120" value="55" placeholder="e.g., 45">
+                        <label for="primary-current-age">Current Age
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Current Age of primary</span>
+                            </span>
+                        </label>
+                        <input type="number" id="primary-current-age" name="primary-current-age" min="1" max="120"
+                            value="55" placeholder="e.g., 45" />
                     </div>
                     <div class="input-group">
-                        <label for="primary-social-security-age">Social Security Age</label>
-                        <input type="number" id="primary-social-security-age" name="primary-social-security-age" min="0" max="120" value="67" placeholder="e.g., 67">
+                        <label for="primary-social-security-age">Social Security Age
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Age at which Social Security is claimed</span>
+                            </span>
+                        </label>
+                        <input type="number" id="primary-social-security-age" name="primary-social-security-age"
+                            min="62" max="67" value="67" placeholder="e.g., 67" />
                     </div>
                     <div class="input-group">
-                        <label for="primary-annuity-age">Annuity Age</label>
-                        <input type="number" id="primary-annuity-age" name="primary-annuity-age" min="0" max="120" value="67" placeholder="e.g., 62">
+                        <label for="primary-annuity-age">Annuity Age
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Age at which annuity/pension payments begin. Set annuity
+                                    income to 0 if no annuity/pension.</span>
+                            </span>
+                        </label>
+                        <input type="number" id="primary-annuity-age" name="primary-annuity-age" min="1" max="120"
+                            value="67" placeholder="e.g., 62" />
                     </div>
                 </div>
                 <div class="top-person-column spouse">
                     <h3 class="person-title">Spouse</h3>
                     <div class="input-group">
-                        <label for="spouse-current-age">Current Age</label>
-                        <input type="number" id="spouse-current-age" name="spouse-current-age" min="0" max="120" value="53" placeholder="e.g., 42">
+                        <label for="spouse-current-age">Current Age
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Spouse's current age</span>
+                            </span>
+                        </label>
+                        <input type="number" id="spouse-current-age" name="spouse-current-age" min="1" max="120"
+                            value="53" placeholder="e.g., 42" />
                     </div>
                     <div class="input-group">
-                        <label for="spouse-social-security-age">Social Security Age</label>
-                        <input type="number" id="spouse-social-security-age" name="spouse-social-security-age" min="0" max="120" value="67" placeholder="e.g., 67">
+                        <label for="spouse-social-security-age">Social Security Age
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Age at which spouse claims social security</span>
+                            </span>
+                        </label>
+                        <input type="number" id="spouse-social-security-age" name="spouse-social-security-age" min="62"
+                            max="70" value="62" placeholder="e.g., 67" />
                     </div>
                     <div class="input-group">
-                        <label for="spouse-annuity-age">Annuity Age</label>
-                        <input type="number" id="spouse-annuity-age" name="spouse-annuity-age" min="0" max="120" value="67" placeholder="e.g., 62">
+                        <label for="spouse-annuity-age">Annuity Age
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Age at which annuity/pension payments begin. Set annuity
+                                    income to 0 if no annuity/pension.</span>
+                            </span>
+                        </label>
+                        <input type="number" id="spouse-annuity-age" name="spouse-annuity-age" min="1" max="120"
+                            value="62" placeholder="e.g., 62" />
                     </div>
                 </div>
             </div>
@@ -271,4 +326,5 @@
         // JavaScript will be added in the next step
     </script>
 </body>
+
 </html>
