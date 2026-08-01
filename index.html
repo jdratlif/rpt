@@ -84,17 +84,11 @@
             color: #2c3e50;
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #ddd;
+            border-bottom: 2px solid #3498db;
         }
 
-        .top-person-column.primary .person-title {
-            border-bottom-color: #3498db;
-            color: #2c3e50;
-        }
-
-        .top-person-column.spouse .person-title {
-            border-bottom-color: #27ae60;
-            color: #27ae60;
+        .ages-universal {
+            margin-bottom: 30px;
         }
 
         .input-group {
@@ -221,47 +215,45 @@
     <div class="container">
         <h1>Retirement Projection Tool</h1>
 
-        <!-- Universal Ages Section -->
-        <section class="top-section" id="universal-section">
-            <h2 class="section-title">Universal Ages</h2>
-            <div class="top-input-grid horizontal">
-                <div class="input-group">
-                    <label for="retirement-age">Retirement Age
-                        <span class="tooltip">
-                            ?
-                            <span class="tooltip-text">Age primary user will retire</span>
-                        </span>
-                    </label>
-                    <input type="number" id="retirement-age" name="retirement-age" min="1" max="120" value="60"
-                        placeholder="e.g., 65" />
-                </div>
-                <div class="input-group">
-                    <label for="projection-years">Projection Years
-                        <span class="tooltip">
-                            ?
-                            <span class="tooltip-text">Run the projection for this many years</span>
-                        </span>
-                    </label>
-                    <input type="number" id="projection-years" name="projection-years" min="1" max="99" value="40"
-                        placeholder="e.g., 40" />
-                </div>
-                <div class="input-group">
-                    <label for="widow-age">Widow Age
-                        <span class="tooltip">
-                            ?
-                            <span class="tooltip-text">Age at which spouse becomes a widow. Set equal to primary
-                                current age if single.</span>
-                        </span>
-                    </label>
-                    <input type="number" id="widow-age" name="widow-age" min="0" max="120" value="78"
-                        placeholder="e.g., 85" />
+        <!-- Ages Section -->
+        <section class="top-section" id="ages-section">
+            <h2 class="section-title">Ages</h2>
+            <div class="top-person-column universal ages-universal">
+                <h3 class="person-title">Universal</h3>
+                <div class="top-input-grid horizontal">
+                    <div class="input-group">
+                        <label for="retirement-age">Retirement Age
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Age primary user will retire</span>
+                            </span>
+                        </label>
+                        <input type="number" id="retirement-age" name="retirement-age" min="1" max="120" value="60"
+                            placeholder="e.g., 65" />
+                    </div>
+                    <div class="input-group">
+                        <label for="projection-years">Projection Years
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Run the projection for this many years</span>
+                            </span>
+                        </label>
+                        <input type="number" id="projection-years" name="projection-years" min="1" max="99" value="40"
+                            placeholder="e.g., 40" />
+                    </div>
+                    <div class="input-group">
+                        <label for="widow-age">Widow Age
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Age at which spouse becomes a widow. Set equal to primary
+                                    current age if single.</span>
+                            </span>
+                        </label>
+                        <input type="number" id="widow-age" name="widow-age" min="0" max="120" value="78"
+                            placeholder="e.g., 85" />
+                    </div>
                 </div>
             </div>
-        </section>
-
-        <!-- Key Ages Section -->
-        <section class="top-section" id="top-section">
-            <h2 class="section-title">Key Ages</h2>
             <div class="top-input-grid">
                 <div class="top-person-column primary">
                     <h3 class="person-title">Primary</h3>
