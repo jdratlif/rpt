@@ -5,238 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Retirement Projection Tool</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family:
-                -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
-                sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-        }
-
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #3498db;
-        }
-
-        .top-section {
-            margin-bottom: 30px;
-            padding: 20px;
-            border-radius: 6px;
-            background-color: #fafafa;
-            border: 1px solid #e0e0e0;
-        }
-
-        .top-section .section-title {
-            font-size: 1.3rem;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .top-input-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        .top-input-grid.horizontal {
-            display: flex;
-            align-items: flex-start;
-            gap: 30px;
-            width: 100%;
-        }
-
-        .top-input-grid.horizontal .input-group {
-            flex: 1;
-            max-width: none;
-        }
-
-        .top-person-column {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .top-person-column .person-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #3498db;
-        }
-
-        .ages-universal {
-            margin-bottom: 30px;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #555;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        .currency-input-wrapper {
-            position: relative;
-        }
-
-        .currency-input-wrapper .currency-symbol {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #555;
-            font-size: 1rem;
-            pointer-events: none;
-        }
-
-        .currency-input-wrapper input {
-            padding-left: 22px;
-        }
-
-        .percent-input-wrapper {
-            position: relative;
-        }
-
-        .percent-input-wrapper .percent-symbol {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #555;
-            font-size: 1rem;
-            pointer-events: none;
-        }
-
-        .percent-input-wrapper input {
-            padding-right: 26px;
-        }
-
-        .percent-input-wrapper input:disabled {
-            background-color: #eee;
-            color: #888;
-            cursor: not-allowed;
-        }
-
-        .portfolio-composition {
-            margin-bottom: 30px;
-        }
-
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: help;
-            margin-left: 8px;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background-color: #3498db;
-            color: white;
-            text-align: center;
-            line-height: 16px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .tooltip:hover {
-            background-color: #2980b9;
-        }
-
-        .tooltip .tooltip-text {
-            visibility: hidden;
-            width: 200px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 4px;
-            padding: 8px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.85rem;
-            opacity: 0;
-            transition: opacity 0.2s;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .tooltip .tooltip-text::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #333 transparent transparent transparent;
-        }
-
-        .tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        .actions {
-            text-align: center;
-            margin-top: 30px;
-        }
-
-        .actions button {
-            padding: 12px 30px;
-            font-size: 1.1rem;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .actions button:hover {
-            background-color: #2980b9;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
@@ -507,94 +276,84 @@
             </div>
         </section>
 
+        <!-- Income Section -->
+        <section class="top-section" id="income-section">
+            <h2 class="section-title">Income</h2>
+            <div class="top-input-grid">
+                <div class="top-person-column">
+                    <h3 class="person-title">Social Security</h3>
+                    <div class="input-group">
+                        <label for="social-security-primary-benefit">Primary
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Expected monthly Social Security retirement benefit at full
+                                    retirement age</span>
+                            </span>
+                        </label>
+                        <div class="currency-input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input type="text" inputmode="decimal" class="currency-input"
+                                id="social-security-primary-benefit" name="social-security-primary-benefit" value="2500"
+                                placeholder="e.g., 2,000" />
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="social-security-secondary-benefit">Secondary
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Expected monthly Social Security retirement benefit at full
+                                    retirement age</span>
+                            </span>
+                        </label>
+                        <div class="currency-input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input type="text" inputmode="decimal" class="currency-input"
+                                id="social-security-secondary-benefit" name="social-security-secondary-benefit"
+                                value="2000" placeholder="e.g., 1,000" />
+                        </div>
+                    </div>
+                </div>
+                <div class="top-person-column">
+                    <h3 class="person-title">Annuity</h3>
+                    <div class="input-group">
+                        <label for="annuity-primary-income">Primary
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Monthly annuity/pension income for the primary person. Set
+                                    to 0 if no annuity/pension.</span>
+                            </span>
+                        </label>
+                        <div class="currency-input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input type="text" inputmode="decimal" class="currency-input" id="annuity-primary-income"
+                                name="annuity-primary-income" value="0" placeholder="e.g., 0" />
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="annuity-secondary-income">Secondary
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Monthly annuity/pension income for the secondary person. Set
+                                    to 0 if no annuity/pension.</span>
+                            </span>
+                        </label>
+                        <div class="currency-input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input type="text" inputmode="decimal" class="currency-input" id="annuity-secondary-income"
+                                name="annuity-secondary-income" value="0" placeholder="e.g., 0" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Actions -->
         <div class="actions">
             <button type="button" id="calculate-btn">Calculate</button>
         </div>
     </div>
 
-    <script>
-        // Strips a currency input down to digits/decimal, then re-inserts thousands
-        // separators (e.g. "1000000" -> "1,000,000"). Keeps up to 2 decimal places.
-        function formatCurrencyInput(input) {
-            const raw = input.value.replace(/[^\d.]/g, '');
-            if (raw === '') {
-                input.value = '';
-                return;
-            }
-
-            const [wholeRaw, ...decimalParts] = raw.split('.');
-            const whole = wholeRaw.replace(/^0+(?=\d)/, '') || '0';
-            const formattedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-            if (decimalParts.length > 0) {
-                const decimal = decimalParts.join('').slice(0, 2);
-                input.value = `${formattedWhole}.${decimal}`;
-            } else {
-                input.value = formattedWhole;
-            }
-        }
-
-        // Returns the numeric value of a formatted currency input (commas stripped).
-        function parseCurrencyInput(input) {
-            const raw = input.value.replace(/[^\d.]/g, '');
-            return raw === '' ? 0 : parseFloat(raw);
-        }
-
-        document.querySelectorAll('.currency-input').forEach((input) => {
-            formatCurrencyInput(input);
-
-            input.addEventListener('input', () => {
-                // Preserve cursor position relative to the end of the value so
-                // typing/deleting in the middle of a number doesn't jump the caret.
-                const distanceFromEnd = input.value.length - input.selectionStart;
-                formatCurrencyInput(input);
-                const newPos = input.value.length - distanceFromEnd;
-                input.setSelectionRange(newPos, newPos);
-            });
-        });
-
-        // Strips a percent input down to digits and a single decimal point.
-        function formatPercentInput(input) {
-            let raw = input.value.replace(/[^\d.]/g, '');
-            const firstDot = raw.indexOf('.');
-            if (firstDot !== -1) {
-                raw = raw.slice(0, firstDot + 1) + raw.slice(firstDot + 1).replace(/\./g, '');
-            }
-            input.value = raw;
-        }
-
-        // Clamps a percent input's value to the valid 0-100 range.
-        function clampPercentInput(input) {
-            if (input.value === '') {
-                return;
-            }
-            const value = parseFloat(input.value);
-            input.value = isNaN(value) ? '' : String(Math.min(100, Math.max(0, value)));
-        }
-
-        function parsePercentInput(input) {
-            const value = parseFloat(input.value);
-            return isNaN(value) ? 0 : value;
-        }
-
-        // Bond % is derived from Stock % rather than entered directly.
-        function updateBondPercentage() {
-            const stockValue = parsePercentInput(document.getElementById('stock-percentage'));
-            document.getElementById('bond-percentage').value = String(100 - Math.min(100, Math.max(0, stockValue)));
-        }
-
-        document.querySelectorAll('.percent-input:not(#bond-percentage)').forEach((input) => {
-            formatPercentInput(input);
-            input.addEventListener('input', () => formatPercentInput(input));
-            input.addEventListener('blur', () => clampPercentInput(input));
-        });
-
-        const stockPercentageInput = document.getElementById('stock-percentage');
-        stockPercentageInput.addEventListener('input', updateBondPercentage);
-        stockPercentageInput.addEventListener('blur', updateBondPercentage);
-        updateBondPercentage();
-    </script>
+    <script src="script.js"></script>
 </body>
 
 </html>

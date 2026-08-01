@@ -1,0 +1,80 @@
+// Strips a currency input down to digits/decimal, then re-inserts thousands
+// separators (e.g. "1000000" -> "1,000,000"). Keeps up to 2 decimal places.
+function formatCurrencyInput(input) {
+    const raw = input.value.replace(/[^\d.]/g, '');
+    if (raw === '') {
+        input.value = '';
+        return;
+    }
+
+    const [wholeRaw, ...decimalParts] = raw.split('.');
+    const whole = wholeRaw.replace(/^0+(?=\d)/, '') || '0';
+    const formattedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+    if (decimalParts.length > 0) {
+        const decimal = decimalParts.join('').slice(0, 2);
+        input.value = `${formattedWhole}.${decimal}`;
+    } else {
+        input.value = formattedWhole;
+    }
+}
+
+// Returns the numeric value of a formatted currency input (commas stripped).
+function parseCurrencyInput(input) {
+    const raw = input.value.replace(/[^\d.]/g, '');
+    return raw === '' ? 0 : parseFloat(raw);
+}
+
+document.querySelectorAll('.currency-input').forEach((input) => {
+    formatCurrencyInput(input);
+
+    input.addEventListener('input', () => {
+        // Preserve cursor position relative to the end of the value so
+        // typing/deleting in the middle of a number doesn't jump the caret.
+        const distanceFromEnd = input.value.length - input.selectionStart;
+        formatCurrencyInput(input);
+        const newPos = input.value.length - distanceFromEnd;
+        input.setSelectionRange(newPos, newPos);
+    });
+});
+
+// Strips a percent input down to digits and a single decimal point.
+function formatPercentInput(input) {
+    let raw = input.value.replace(/[^\d.]/g, '');
+    const firstDot = raw.indexOf('.');
+    if (firstDot !== -1) {
+        raw = raw.slice(0, firstDot + 1) + raw.slice(firstDot + 1).replace(/\./g, '');
+    }
+    input.value = raw;
+}
+
+// Clamps a percent input's value to the valid 0-100 range.
+function clampPercentInput(input) {
+    if (input.value === '') {
+        return;
+    }
+    const value = parseFloat(input.value);
+    input.value = isNaN(value) ? '' : String(Math.min(100, Math.max(0, value)));
+}
+
+function parsePercentInput(input) {
+    const value = parseFloat(input.value);
+    return isNaN(value) ? 0 : value;
+}
+
+// Bond % is derived from Stock % rather than entered directly.
+function updateBondPercentage() {
+    const stockValue = parsePercentInput(document.getElementById('stock-percentage'));
+    document.getElementById('bond-percentage').value = String(100 - Math.min(100, Math.max(0, stockValue)));
+}
+
+document.querySelectorAll('.percent-input:not(#bond-percentage)').forEach((input) => {
+    formatPercentInput(input);
+    input.addEventListener('input', () => formatPercentInput(input));
+    input.addEventListener('blur', () => clampPercentInput(input));
+});
+
+const stockPercentageInput = document.getElementById('stock-percentage');
+stockPercentageInput.addEventListener('input', updateBondPercentage);
+stockPercentageInput.addEventListener('blur', updateBondPercentage);
+updateBondPercentage();
