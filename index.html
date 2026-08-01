@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retirement Projection Tool</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 6px;
+            background-color: #fafafa;
+            border: 1px solid #e0e0e0;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .person-column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .person-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .person-column.primary .person-title {
+            border-bottom-color: #3498db;
+            color: #2c3e50;
+        }
+
+        .person-column.spouse .person-title {
+            border-bottom-color: #27ae60;
+            color: #27ae60;
+        }
+
+        .actions {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .actions button {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .actions button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Retirement Projection Tool</h1>
+
+        <!-- Ages Section -->
+        <section class="section" id="ages-section">
+            <h2 class="section-title">Ages</h2>
+            <div class="input-grid">
+                <div class="person-column primary">
+                    <h3 class="person-title">Primary</h3>
+                    <div class="input-group">
+                        <label for="primary-current-age">Current Age</label>
+                        <input type="number" id="primary-current-age" name="primary-current-age" min="0" max="120" value="55" placeholder="e.g., 45">
+                    </div>
+                    <div class="input-group">
+                        <label for="primary-retirement-age">Retirement Age</label>
+                        <input type="number" id="primary-retirement-age" name="primary-retirement-age" min="0" max="120" value="60" placeholder="e.g., 65">
+                    </div>
+                    <div class="input-group">
+                        <label for="primary-projection-age">Projection Age</label>
+                        <input type="number" id="primary-projection-age" name="primary-projection-age" min="0" max="120" value="99" placeholder="e.g., 90">
+                    </div>
+                    <div class="input-group">
+                        <label for="primary-social-security-age">Social Security Age</label>
+                        <input type="number" id="primary-social-security-age" name="primary-social-security-age" min="0" max="120" value="67" placeholder="e.g., 67">
+                    </div>
+                    <div class="input-group">
+                        <label for="primary-annuity-age">Annuity Age</label>
+                        <input type="number" id="primary-annuity-age" name="primary-annuity-age" min="0" max="120" value="67" placeholder="e.g., 62">
+                    </div>
+                </div>
+                <div class="person-column spouse">
+                    <h3 class="person-title">Spouse</h3>
+                    <div class="input-group">
+                        <label for="spouse-age">Spouse Age</label>
+                        <input type="number" id="spouse-age" name="spouse-age" min="0" max="120" value="53" placeholder="e.g., 42">
+                    </div>
+                    <div class="input-group">
+                        <label for="spouse-social-security-age">Social Security Age</label>
+                        <input type="number" id="spouse-social-security-age" name="spouse-social-security-age" min="0" max="120" value="67" placeholder="e.g., 67">
+                    </div>
+                    <div class="input-group">
+                        <label for="spouse-widow-age">Widow Age</label>
+                        <input type="number" id="spouse-widow-age" name="spouse-widow-age" min="0" max="120" value="78" placeholder="e.g., 85">
+                    </div>
+                    <div class="input-group">
+                        <label for="spouse-annuity-age">Annuity Age</label>
+                        <input type="number" id="spouse-annuity-age" name="spouse-annuity-age" min="0" max="120" value="67" placeholder="e.g., 62">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Actions -->
+        <div class="actions">
+            <button type="button" id="calculate-btn">Calculate</button>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript will be added in the next step
+    </script>
+</body>
+</html>
