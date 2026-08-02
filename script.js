@@ -922,8 +922,18 @@ function renderTaxProjectionTable(rows) {
     const tbody = document.getElementById('tax-projection-tbody');
     tbody.innerHTML = '';
 
-    rows.forEach((row) => {
+    // Running total uses the same (possibly today's-dollars-deflated) totalTax
+    // figures shown per row, so it matches what a reader would get adding the
+    // Total column by hand; the running rate is a plain (unweighted) mean of
+    // effectiveTaxRate across years so far, not a tax-dollar-weighted average.
+    let runningTotalTax = 0;
+    let runningEffectiveRateSum = 0;
+
+    rows.forEach((row, index) => {
         const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
+        runningTotalTax += row.totalTax;
+        runningEffectiveRateSum += row.effectiveTaxRate;
+        const runningAvgRate = runningEffectiveRateSum / (index + 1);
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${row.year}</td>
@@ -937,8 +947,8 @@ function renderTaxProjectionTable(rows) {
             <td>${formatResultCurrency(row.niit)}</td>
             <td>${formatResultCurrency(row.stateTax)}</td>
             <td class="total-cell">${formatResultCurrency(row.totalTax)}</td>
-            <td>${formatResultPercent(row.marginalFederalRate)}</td>
-            <td>${formatResultPercent(row.effectiveTaxRate)}</td>
+            <td>${formatResultPercent(row.marginalFederalRate)} / ${formatResultPercent(row.effectiveTaxRate)}</td>
+            <td>${formatResultCurrency(runningTotalTax)} / ${formatResultPercent(runningAvgRate)}</td>
         `;
         tbody.appendChild(tr);
     });
