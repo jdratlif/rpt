@@ -260,6 +260,24 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Advanced Stock Returns Trigger -->
+                        <div class="tax-tables-trigger">
+                            <div class="input-group checkbox-group advanced-stock-returns-toggle">
+                                <label for="use-advanced-stock-returns">
+                                    <input type="checkbox" id="use-advanced-stock-returns"
+                                        name="use-advanced-stock-returns" />
+                                    Use Advanced Stock Returns
+                                    <span class="tooltip">
+                                        ?
+                                        <span class="tooltip-text">When checked, each projection year uses its own
+                                            stock return percentage from the advanced dialog instead of the single Stock
+                                            Returns value.</span>
+                                    </span>
+                                </label>
+                            </div>
+                            <button type="button" id="open-advanced-stock-returns-btn" class="link-button">Edit
+                                Yearly Stock Returns (Advanced)</button>
+                        </div>
                         <!-- Tax Tables Trigger -->
                         <div class="tax-tables-trigger">
                             <button type="button" id="open-tax-tables-btn" class="link-button">Edit Tax Tables
@@ -1020,6 +1038,26 @@
                     </section>
                 </div>
             </div>
+
+            <!-- Advanced Stock Returns Modal -->
+            <dialog id="advanced-stock-returns-modal">
+                <div class="modal-header">
+                    <h2 class="section-title">Advanced Stock Returns</h2>
+                    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+                </div>
+
+                <div class="average-return-display">
+                    Average Return: <span id="advanced-stock-returns-average">7.0%</span>
+                </div>
+
+                <div class="advanced-stock-returns-grid" id="advanced-stock-returns-grid">
+                    <!-- Populated dynamically based on Projection Years. -->
+                </div>
+
+                <div class="actions">
+                    <button type="button" class="modal-close">Done</button>
+                </div>
+            </dialog>
 
             <!-- Tax Tables Modal -->
             <dialog id="tax-tables-modal">

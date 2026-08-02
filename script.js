@@ -40,21 +40,26 @@ document.querySelectorAll('.currency-input').forEach((input) => {
 
 // Strips a percent input down to digits and a single decimal point.
 function formatPercentInput(input) {
-    let raw = input.value.replace(/[^\d.]/g, '');
+    let raw = input.value.replace(/[^\d.-]/g, '');
+    // Keep only the leading minus sign, if present.
+    const negative = raw.startsWith('-');
+    raw = raw.replace(/-/g, '');
     const firstDot = raw.indexOf('.');
     if (firstDot !== -1) {
         raw = raw.slice(0, firstDot + 1) + raw.slice(firstDot + 1).replace(/\./g, '');
     }
-    input.value = raw;
+    input.value = (negative ? '-' : '') + raw;
 }
 
-// Clamps a percent input's value to the valid 0-100 range.
+// Clamps a percent input's value to the valid -100 to 100 range. The advanced
+// stock-return dialog needs negative values for bad years, while the rest of
+// the app only uses positive percentages.
 function clampPercentInput(input) {
     if (input.value === '') {
         return;
     }
     const value = parseFloat(input.value);
-    input.value = isNaN(value) ? '' : String(Math.min(100, Math.max(0, value)));
+    input.value = isNaN(value) ? '' : String(Math.min(100, Math.max(-100, value)));
 }
 
 function parsePercentInput(input) {
@@ -189,6 +194,107 @@ function loadUserPresetOnStartup() {
 document.getElementById('save-user-preset-btn').addEventListener('click', saveUserPreset);
 document.getElementById('load-user-preset-btn').addEventListener('click', loadUserPreset);
 loadUserPresetOnStartup();
+
+// Advanced Stock Returns modal: let users override the single Stock Returns %
+// with a per-projection-year stock return. Pre-retirement growth always uses
+// the main Stock Returns %; only the projection-year account growth is affected.
+const advancedStockReturnsModal = document.getElementById('advanced-stock-returns-modal');
+const advancedStockReturnsGrid = document.getElementById('advanced-stock-returns-grid');
+const advancedStockReturnsAverage = document.getElementById('advanced-stock-returns-average');
+const useAdvancedStockReturnsCheckbox = document.getElementById('use-advanced-stock-returns');
+const openAdvancedStockReturnsBtn = document.getElementById('open-advanced-stock-returns-btn');
+
+function updateAdvancedStockReturnsButtonState() {
+    openAdvancedStockReturnsBtn.disabled = !useAdvancedStockReturnsCheckbox.checked;
+}
+
+useAdvancedStockReturnsCheckbox.addEventListener('change', updateAdvancedStockReturnsButtonState);
+updateAdvancedStockReturnsButtonState();
+
+function populateAdvancedStockReturnsModal() {
+    const projectionYears = parseFloat(document.getElementById('projection-years').value) || 0;
+    const retirementAge = parseFloat(document.getElementById('retirement-age').value) || 0;
+    const defaultReturn = document.getElementById('stock-return-percentage').value;
+
+    // Preserve any values the user has already entered so reopening the modal
+    // doesn't wipe out their customizations.
+    const existingValues = {};
+    advancedStockReturnsGrid.querySelectorAll('.advanced-stock-return-input').forEach((input, index) => {
+        existingValues[index] = input.value;
+    });
+
+    advancedStockReturnsGrid.innerHTML = '';
+
+    for (let i = 0; i < projectionYears; i++) {
+        const year = i + 1;
+        const age = retirementAge + i;
+        const value = existingValues[i] !== undefined ? existingValues[i] : defaultReturn;
+
+        const row = document.createElement('div');
+        row.className = 'advanced-stock-return-row';
+        row.innerHTML = `
+            <label for="advanced-stock-return-year-${year}">Year ${year} (Age ${age})</label>
+            <div class="percent-input-wrapper">
+                <input type="text" inputmode="decimal" class="percent-input advanced-stock-return-input"
+                    id="advanced-stock-return-year-${year}" name="advanced-stock-return-year-${year}"
+                    value="${value}" placeholder="e.g., 7" />
+                <span class="percent-symbol">%</span>
+            </div>
+        `;
+        advancedStockReturnsGrid.appendChild(row);
+    }
+
+    updateAdvancedStockReturnsAverage();
+}
+
+function updateAdvancedStockReturnsAverage() {
+    const inputs = advancedStockReturnsGrid.querySelectorAll('.advanced-stock-return-input');
+    if (inputs.length === 0) {
+        advancedStockReturnsAverage.textContent = '0.0%';
+        return;
+    }
+    let sum = 0;
+    inputs.forEach((input) => {
+        sum += parsePercentInput(input);
+    });
+    const average = sum / inputs.length;
+    advancedStockReturnsAverage.textContent = `${average.toFixed(1)}%`;
+}
+
+advancedStockReturnsGrid.addEventListener('input', (event) => {
+    if (event.target.classList.contains('advanced-stock-return-input')) {
+        const distanceFromEnd = event.target.value.length - event.target.selectionStart;
+        formatPercentInput(event.target);
+        const newPos = event.target.value.length - distanceFromEnd;
+        event.target.setSelectionRange(newPos, newPos);
+        updateAdvancedStockReturnsAverage();
+    }
+});
+
+advancedStockReturnsGrid.addEventListener('blur', (event) => {
+    if (event.target.classList.contains('advanced-stock-return-input')) {
+        clampPercentInput(event.target);
+    }
+}, true);
+
+openAdvancedStockReturnsBtn.addEventListener('click', () => {
+    populateAdvancedStockReturnsModal();
+    advancedStockReturnsModal.showModal();
+});
+
+document.querySelectorAll('#advanced-stock-returns-modal .modal-close').forEach((button) => {
+    button.addEventListener('click', () => advancedStockReturnsModal.close());
+});
+
+advancedStockReturnsModal.addEventListener('click', (event) => {
+    const rect = advancedStockReturnsModal.getBoundingClientRect();
+    const clickedInsideContent =
+        event.clientX >= rect.left && event.clientX <= rect.right &&
+        event.clientY >= rect.top && event.clientY <= rect.bottom;
+    if (!clickedInsideContent) {
+        advancedStockReturnsModal.close();
+    }
+});
 
 // Allow users to click a row in any projection table to highlight it. Clicking
 // the same row again removes the highlight, and clicking a different row moves
@@ -690,9 +796,12 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
 
     // Whatever remains after the withdrawal grows for the rest of the year, so the
     // ending balance reflects a full year of stock/bond returns on the reduced base.
-    growAccount(accounts.taxable, context.monthlyStockReturn, context.monthlyBondReturn, 12);
-    growAccount(accounts.traditional, context.monthlyStockReturn, context.monthlyBondReturn, 12);
-    growAccount(accounts.roth, context.monthlyStockReturn, context.monthlyBondReturn, 12);
+    // In advanced mode, the stock return for this specific projection year is used;
+    // bonds always use the single bond return %.
+    const yearMonthlyStockReturn = context.yearlyMonthlyStockReturns[yearIndex - 1];
+    growAccount(accounts.taxable, yearMonthlyStockReturn, context.monthlyBondReturn, 12);
+    growAccount(accounts.traditional, yearMonthlyStockReturn, context.monthlyBondReturn, 12);
+    growAccount(accounts.roth, yearMonthlyStockReturn, context.monthlyBondReturn, 12);
 
     const taxableBalance = accounts.taxable.stock + accounts.taxable.bond;
     const traditionalBalance = accounts.traditional.stock + accounts.traditional.bond;
@@ -1074,6 +1183,8 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
     const monthlyStockReturn = parsePercentInput(document.getElementById('stock-return-percentage')) / 100 / 12;
     const monthlyBondReturn = parsePercentInput(document.getElementById('bond-return-percentage')) / 100 / 12;
 
+    const useAdvancedStockReturns = document.getElementById('use-advanced-stock-returns').checked;
+
     const traditionalAccount = projectAccountBalance(
         parseCurrencyInput(document.getElementById('traditional-retirement-balance')),
         parseCurrencyInput(document.getElementById('traditional-monthly-contribution')),
@@ -1193,6 +1304,19 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         roth: { stock: rothAccount.stock, bond: rothAccount.bond },
     };
 
+    // Build a per-projection-year monthly stock return array. In advanced mode,
+    // read the modal inputs (falling back to the default stock return % if an
+    // input is missing). Otherwise, every projection year uses the default.
+    const defaultAnnualStockReturn = parsePercentInput(document.getElementById('stock-return-percentage')) / 100;
+    const yearlyMonthlyStockReturns = new Array(Math.max(0, projectionYears)).fill(monthlyStockReturn);
+    if (useAdvancedStockReturns) {
+        for (let i = 0; i < projectionYears; i++) {
+            const input = document.getElementById(`advanced-stock-return-year-${i + 1}`);
+            const annualReturn = input ? parsePercentInput(input) / 100 : defaultAnnualStockReturn;
+            yearlyMonthlyStockReturns[i] = annualReturn / 12;
+        }
+    }
+
     const withdrawalContextBase = {
         retirementAge,
         yearsToRetirement,
@@ -1201,7 +1325,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         inflationRate: expenseContext.inflationRate,
         hasSpouse: expenseContext.hasSpouse,
         widowAge: expenseContext.widowAge,
-        monthlyStockReturn,
+        yearlyMonthlyStockReturns,
         monthlyBondReturn,
     };
 
