@@ -79,6 +79,24 @@ stockPercentageInput.addEventListener('input', updateBondPercentage);
 stockPercentageInput.addEventListener('blur', updateBondPercentage);
 updateBondPercentage();
 
+// These inputs only matter when there's a spouse to apply them to; disabling them
+// when "has-spouse" is unchecked means users don't have to manually zero out each
+// one to get a clean Single-filer projection.
+const SPOUSE_ONLY_INPUT_IDS = [
+    'widow-age', 'spouse-current-age', 'spouse-social-security-age', 'spouse-annuity-age',
+    'social-security-secondary-benefit', 'annuity-secondary-income', 'pre-medicare-expenses-spouse',
+];
+
+function updateSpouseInputsDisabled() {
+    const hasSpouse = document.getElementById('has-spouse').checked;
+    SPOUSE_ONLY_INPUT_IDS.forEach((id) => {
+        document.getElementById(id).disabled = !hasSpouse;
+    });
+}
+
+document.getElementById('has-spouse').addEventListener('change', updateSpouseInputsDisabled);
+updateSpouseInputsDisabled();
+
 // Manually restore each field's original HTML value (defaultValue) instead of using a
 // native reset button, since the browser's "reset" event fires *before* fields are
 // reset, which would reformat stale values instead of the restored defaults.
@@ -93,6 +111,7 @@ document.getElementById('reset-btn').addEventListener('click', () => {
     document.querySelectorAll('.currency-input').forEach(formatCurrencyInput);
     document.querySelectorAll('.percent-input:not(#bond-percentage)').forEach(formatPercentInput);
     updateBondPercentage();
+    updateSpouseInputsDisabled();
 });
 
 // Tax Tables modal: rarely-edited settings tucked behind a native <dialog> instead
@@ -185,18 +204,20 @@ function calculateExpenseYear(yearIndex, context) {
 
     const common = context.monthlyExpenses * 12;
     let primaryPreMedicare = primaryAge < 65 ? context.primaryPreMedicareExpenses * 12 : 0;
-    const spousePreMedicare = spouseAge < 65 ? context.spousePreMedicareExpenses * 12 : 0;
+    // No spouse means no spouse expenses at all, regardless of what's left in that field.
+    const spousePreMedicare = (context.hasSpouse && spouseAge < 65) ? context.spousePreMedicareExpenses * 12 : 0;
     // Part B is a fixed per-person premium once Medicare eligibility starts at 65;
     // Part D is excluded since its premium varies widely by plan.
     let primaryMedicare = primaryAge >= 65 ? context.medicarePartBPremium * 12 : 0;
-    const spouseMedicare = spouseAge >= 65 ? context.medicarePartBPremium * 12 : 0;
+    const spouseMedicare = (context.hasSpouse && spouseAge >= 65) ? context.medicarePartBPremium * 12 : 0;
     const temporaryExpenses = context.temporaryExpenses.map((expense) =>
         (primaryAge >= expense.startAge && primaryAge <= expense.endAge) ? expense.amount * 12 : 0
     );
 
     // Primary is assumed deceased once the spouse reaches widow age, so his own
-    // Medicare/pre-Medicare costs stop (the spouse's are unaffected).
-    if (context.widowAge > 0 && spouseAge >= context.widowAge) {
+    // Medicare/pre-Medicare costs stop (the spouse's are unaffected). Only
+    // applicable when there's actually a spouse to survive him.
+    if (context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge) {
         primaryPreMedicare = 0;
         primaryMedicare = 0;
     }
@@ -214,8 +235,8 @@ function calculateExpenseYear(yearIndex, context) {
     // for nominal -- instead of being inflated a second time.
     const irmaaMonthlySurcharge = context.irmaaMonthlySurchargeByYear[yearIndex - 1] ?? 0;
     let primaryIrmaaNominal = primaryAge >= 65 ? irmaaMonthlySurcharge * 12 : 0;
-    const spouseIrmaaNominal = spouseAge >= 65 ? irmaaMonthlySurcharge * 12 : 0;
-    if (context.widowAge > 0 && spouseAge >= context.widowAge) {
+    const spouseIrmaaNominal = (context.hasSpouse && spouseAge >= 65) ? irmaaMonthlySurcharge * 12 : 0;
+    if (context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge) {
         primaryIrmaaNominal = 0;
     }
     const irmaaSurchargeNominal = primaryIrmaaNominal + spouseIrmaaNominal;
@@ -276,11 +297,12 @@ function calculateAnnuityYear(yearIndex, context) {
     const spouseAge = context.spouseAgeAtRetirement + (yearIndex - 1);
 
     let primaryAnnuity = primaryAge >= context.primaryAnnuityAge ? context.primaryAnnuityIncome * 12 : 0;
-    const spouseAnnuity = spouseAge >= context.spouseAnnuityAge ? context.spouseAnnuityIncome * 12 : 0;
+    const spouseAnnuity = (context.hasSpouse && spouseAge >= context.spouseAnnuityAge) ? context.spouseAnnuityIncome * 12 : 0;
 
     // Primary is assumed deceased once the spouse reaches widow age; no survivor
-    // benefit carries over for the annuity, it simply stops.
-    if (context.widowAge > 0 && spouseAge >= context.widowAge) {
+    // benefit carries over for the annuity, it simply stops. Only applicable when
+    // there's actually a spouse to survive him.
+    if (context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge) {
         primaryAnnuity = 0;
     }
 
@@ -353,11 +375,12 @@ function calculateSocialSecurityYear(yearIndex, context) {
     const spouseAge = context.spouseAgeAtRetirement + (yearIndex - 1);
 
     let primarySS = primaryAge >= context.primaryClaimAge ? context.primaryMonthlyBenefit * 12 : 0;
-    let spouseSS = spouseAge >= context.spouseClaimAge ? context.spouseMonthlyBenefit * 12 : 0;
+    let spouseSS = (context.hasSpouse && spouseAge >= context.spouseClaimAge) ? context.spouseMonthlyBenefit * 12 : 0;
 
     // Primary is assumed deceased once the spouse reaches widow age; the widow
     // steps up to whichever of the two (claim-age-adjusted) benefits is larger.
-    if (context.widowAge > 0 && spouseAge >= context.widowAge) {
+    // Only applicable when there's actually a spouse to survive him.
+    if (context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge) {
         spouseSS = Math.max(context.primaryMonthlyBenefit, context.spouseMonthlyBenefit) * 12;
         primarySS = 0;
     }
@@ -627,15 +650,15 @@ function getIrmaaMonthlySurcharge(magi, filingStatus, nominalFactor) {
 // Calculates one projection year's federal and state tax liability. Traditional
 // withdrawals and annuity income are ordinary income; the taxable (non-basis)
 // portion of taxable-account withdrawals is long-term capital gains; Roth
-// withdrawals are untaxed and don't appear here at all. Filing status switches
-// from MFJ to Single once the primary is presumed deceased (spouse past widow
-// age), mirroring the same widow-age convention used elsewhere in this app.
+// withdrawals are untaxed and don't appear here at all. Filing status is Single
+// the whole projection when there's no spouse, or switches from MFJ to Single
+// once the primary is presumed deceased (spouse past widow age).
 function calculateTaxYear(yearIndex, context) {
     const primaryAge = context.retirementAge + (yearIndex - 1);
     const spouseAge = context.spouseAgeAtRetirement + (yearIndex - 1);
 
-    const isWidowed = context.widowAge > 0 && spouseAge >= context.widowAge;
-    const filingStatus = isWidowed ? 'single' : 'mfj';
+    const isWidowed = context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge;
+    const filingStatus = (!context.hasSpouse || isWidowed) ? 'single' : 'mfj';
 
     const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
     // Bracket thresholds and the standard deduction are inflated each year, the
@@ -796,6 +819,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         spouseAgeAtRetirement: spouseCurrentAge + yearsToRetirement,
         showTodaysDollars: document.getElementById('todays-dollars').checked,
         inflationRate: parsePercentInput(document.getElementById('inflation-percentage')) / 100,
+        hasSpouse: document.getElementById('has-spouse').checked,
         widowAge: parseFloat(document.getElementById('widow-age').value) || 0,
         monthlyExpenses: parseCurrencyInput(document.getElementById('monthly-expenses')),
         primaryPreMedicareExpenses: parseCurrencyInput(document.getElementById('pre-medicare-expenses-primary')),
@@ -814,6 +838,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         spouseAgeAtRetirement: expenseContext.spouseAgeAtRetirement,
         showTodaysDollars: expenseContext.showTodaysDollars,
         inflationRate: expenseContext.inflationRate,
+        hasSpouse: expenseContext.hasSpouse,
         widowAge: expenseContext.widowAge,
         primaryAnnuityAge: parseFloat(document.getElementById('primary-annuity-age').value) || 0,
         spouseAnnuityAge: parseFloat(document.getElementById('spouse-annuity-age').value) || 0,
@@ -839,6 +864,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         spouseAgeAtRetirement: expenseContext.spouseAgeAtRetirement,
         showTodaysDollars: expenseContext.showTodaysDollars,
         inflationRate: expenseContext.inflationRate,
+        hasSpouse: annuityContext.hasSpouse,
         widowAge: annuityContext.widowAge,
         primaryClaimAge: primarySocialSecurityAge,
         spouseClaimAge: spouseSocialSecurityAge,
@@ -881,6 +907,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         spouseAgeAtRetirement: expenseContext.spouseAgeAtRetirement,
         showTodaysDollars: expenseContext.showTodaysDollars,
         inflationRate: expenseContext.inflationRate,
+        hasSpouse: expenseContext.hasSpouse,
         widowAge: expenseContext.widowAge,
         taxableBasisFraction: parsePercentInput(document.getElementById('taxable-basis-percentage')) / 100,
         federalBracketsSingle: readBracketInputs('federal-bracket-single', [1, 2, 3, 4, 5, 6, 7]),

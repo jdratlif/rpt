@@ -18,6 +18,18 @@
                 <h2 class="section-title">Ages</h2>
                 <div class="top-person-column universal ages-universal">
                     <h3 class="person-title">Universal</h3>
+                    <div class="input-group checkbox-group">
+                        <label for="has-spouse">
+                            <input type="checkbox" id="has-spouse" name="has-spouse" checked />
+                            Married
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Uncheck if you don't have a spouse. Filing status will be
+                                    Single for the entire projection and all Spouse inputs below (age, Social
+                                    Security, annuity, pre-Medicare expenses, Widow Age) are ignored.</span>
+                            </span>
+                        </label>
+                    </div>
                     <div class="top-input-grid horizontal">
                         <div class="input-group">
                             <label for="retirement-age">Retirement Age
@@ -43,8 +55,9 @@
                             <label for="widow-age">Widow Age
                                 <span class="tooltip">
                                     ?
-                                    <span class="tooltip-text">Age at which spouse becomes a widow. Set to 0 if
-                                        single.</span>
+                                    <span class="tooltip-text">Age at which spouse becomes a widow and filing status
+                                        switches to Single. Ignored (and disabled) when "Married / Filing With a
+                                        Spouse" above is unchecked.</span>
                                 </span>
                             </label>
                             <input type="number" id="widow-age" name="widow-age" min="0" max="120" value="78"
