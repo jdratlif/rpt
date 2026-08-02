@@ -239,45 +239,46 @@
                     <div class="top-person-column">
                         <h3 class="person-title">Pre-Retirement Contributions</h3>
                         <div class="input-group">
-                            <label for="traditional-annual-contribution">Traditional
+                            <label for="traditional-monthly-contribution">Traditional
                                 <span class="tooltip">
                                     ?
-                                    <span class="tooltip-text">Annual contribution to traditional retirement
+                                    <span class="tooltip-text">Monthly contribution to traditional retirement
                                         accounts</span>
                                 </span>
                             </label>
                             <div class="currency-input-wrapper">
                                 <span class="currency-symbol">$</span>
                                 <input type="text" inputmode="decimal" class="currency-input"
-                                    id="traditional-annual-contribution" name="traditional-annual-contribution"
+                                    id="traditional-monthly-contribution" name="traditional-monthly-contribution"
                                     value="0" placeholder="e.g., 0" />
                             </div>
                         </div>
                         <div class="input-group">
-                            <label for="roth-annual-contribution">Roth
+                            <label for="roth-monthly-contribution">Roth
                                 <span class="tooltip">
                                     ?
-                                    <span class="tooltip-text">Annual contribution to Roth retirement accounts</span>
+                                    <span class="tooltip-text">Monthly contribution to Roth retirement accounts</span>
                                 </span>
                             </label>
                             <div class="currency-input-wrapper">
                                 <span class="currency-symbol">$</span>
                                 <input type="text" inputmode="decimal" class="currency-input"
-                                    id="roth-annual-contribution" name="roth-annual-contribution" value="0"
+                                    id="roth-monthly-contribution" name="roth-monthly-contribution" value="0"
                                     placeholder="e.g., 0" />
                             </div>
                         </div>
                         <div class="input-group">
-                            <label for="taxable-annual-contribution">Taxable
+                            <label for="taxable-monthly-contribution">Taxable
                                 <span class="tooltip">
                                     ?
-                                    <span class="tooltip-text">Annual contribution to taxable investment accounts</span>
+                                    <span class="tooltip-text">Monthly contribution to taxable investment
+                                        accounts</span>
                                 </span>
                             </label>
                             <div class="currency-input-wrapper">
                                 <span class="currency-symbol">$</span>
                                 <input type="text" inputmode="decimal" class="currency-input"
-                                    id="taxable-annual-contribution" name="taxable-annual-contribution" value="0"
+                                    id="taxable-monthly-contribution" name="taxable-monthly-contribution" value="0"
                                     placeholder="e.g., 0" />
                             </div>
                         </div>
@@ -357,6 +358,47 @@
                                     id="annuity-secondary-income" name="annuity-secondary-income" value="0"
                                     placeholder="e.g., 0" />
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Roth Conversions Section -->
+            <section class="top-section" id="roth-conversions-section">
+                <h2 class="section-title">Roth Conversions</h2>
+                <div class="top-input-grid horizontal">
+                    <div class="input-group">
+                        <label for="roth-conversion-start-age">Start Age
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Age at which annual Roth conversions begin</span>
+                            </span>
+                        </label>
+                        <input type="number" id="roth-conversion-start-age" name="roth-conversion-start-age" min="1"
+                            max="120" value="60" placeholder="e.g., 60" />
+                    </div>
+                    <div class="input-group">
+                        <label for="roth-conversion-end-age">End Age
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Age at which annual Roth conversions end</span>
+                            </span>
+                        </label>
+                        <input type="number" id="roth-conversion-end-age" name="roth-conversion-end-age" min="1"
+                            max="120" value="75" placeholder="e.g., 75" />
+                    </div>
+                    <div class="input-group">
+                        <label for="roth-conversion-amount">Amount
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Annual amount converted from traditional to Roth accounts.
+                                    Set to 0 for no conversions.</span>
+                            </span>
+                        </label>
+                        <div class="currency-input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input type="text" inputmode="decimal" class="currency-input" id="roth-conversion-amount"
+                                name="roth-conversion-amount" value="0" placeholder="e.g., 0" />
                         </div>
                     </div>
                 </div>
