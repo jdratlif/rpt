@@ -220,8 +220,14 @@ function calculateAnnuityYear(yearIndex, context) {
     const primaryAge = context.retirementAge + (yearIndex - 1);
     const spouseAge = context.spouseAgeAtRetirement + (yearIndex - 1);
 
-    const primaryAnnuity = primaryAge >= context.primaryAnnuityAge ? context.primaryAnnuityIncome * 12 : 0;
+    let primaryAnnuity = primaryAge >= context.primaryAnnuityAge ? context.primaryAnnuityIncome * 12 : 0;
     const spouseAnnuity = spouseAge >= context.spouseAnnuityAge ? context.spouseAnnuityIncome * 12 : 0;
+
+    // Primary is assumed deceased once the spouse reaches widow age; no survivor
+    // benefit carries over for the annuity, it simply stops.
+    if (context.widowAge > 0 && spouseAge >= context.widowAge) {
+        primaryAnnuity = 0;
+    }
 
     const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
     const deflationFactor = context.showTodaysDollars
@@ -256,6 +262,82 @@ function renderAnnuityProjectionTable(rows) {
     });
 
     document.getElementById('annuity-projection-section').hidden = false;
+}
+
+// Social Security's full retirement age (FRA) for anyone retiring in the
+// projection window covered by this tool.
+const SOCIAL_SECURITY_FULL_RETIREMENT_AGE = 67;
+
+// Adjusts the benefit given at full retirement age for claiming early or late.
+// Early: reduced 5/9 of 1% per month for the first 36 months early, then 5/12 of
+// 1% per month beyond that (this is the standard SSA formula, and produces the
+// well-known 30% reduction at age 62 for an FRA of 67). Late: increased 2/3 of 1%
+// per month (8%/year) up to age 70, when delayed credits stop accruing.
+function calculateSocialSecurityMonthlyBenefit(benefitAtFullRetirementAge, claimAge) {
+    if (claimAge < SOCIAL_SECURITY_FULL_RETIREMENT_AGE) {
+        const monthsEarly = (SOCIAL_SECURITY_FULL_RETIREMENT_AGE - claimAge) * 12;
+        const first36Months = Math.min(monthsEarly, 36);
+        const additionalMonths = Math.max(monthsEarly - 36, 0);
+        const reduction = first36Months * (5 / 9 / 100) + additionalMonths * (5 / 12 / 100);
+        return benefitAtFullRetirementAge * (1 - reduction);
+    }
+
+    const monthsLate = (Math.min(claimAge, 70) - SOCIAL_SECURITY_FULL_RETIREMENT_AGE) * 12;
+    const increase = monthsLate * (2 / 3 / 100);
+    return benefitAtFullRetirementAge * (1 + increase);
+}
+
+// Unlike the annuity, Social Security gets automatic COLA increases that track
+// inflation, so its real purchasing power stays constant at today's-dollars value.
+// That means (like Expenses) we inflate up to nominal dollars when *not* showing
+// today's dollars, rather than deflating when we are.
+function calculateSocialSecurityYear(yearIndex, context) {
+    const primaryAge = context.retirementAge + (yearIndex - 1);
+    const spouseAge = context.spouseAgeAtRetirement + (yearIndex - 1);
+
+    let primarySS = primaryAge >= context.primaryClaimAge ? context.primaryMonthlyBenefit * 12 : 0;
+    let spouseSS = spouseAge >= context.spouseClaimAge ? context.spouseMonthlyBenefit * 12 : 0;
+
+    // Primary is assumed deceased once the spouse reaches widow age; the widow
+    // steps up to whichever of the two (claim-age-adjusted) benefits is larger.
+    if (context.widowAge > 0 && spouseAge >= context.widowAge) {
+        spouseSS = Math.max(context.primaryMonthlyBenefit, context.spouseMonthlyBenefit) * 12;
+        primarySS = 0;
+    }
+
+    const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
+    const inflationFactor = context.showTodaysDollars
+        ? 1
+        : Math.pow(1 + context.inflationRate, yearsFromToday);
+
+    return {
+        year: yearIndex,
+        primaryAge,
+        spouseAge,
+        primarySS: primarySS * inflationFactor,
+        spouseSS: spouseSS * inflationFactor,
+        total: (primarySS + spouseSS) * inflationFactor,
+    };
+}
+
+function renderSocialSecurityProjectionTable(rows) {
+    const tbody = document.getElementById('social-security-projection-tbody');
+    tbody.innerHTML = '';
+
+    rows.forEach((row) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${row.year}</td>
+            <td>${row.primaryAge}</td>
+            <td>${row.spouseAge}</td>
+            <td>${formatResultCurrency(row.primarySS)}</td>
+            <td>${formatResultCurrency(row.spouseSS)}</td>
+            <td class="total-cell">${formatResultCurrency(row.total)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('social-security-projection-section').hidden = false;
 }
 
 document.getElementById('calculate-btn').addEventListener('click', () => {
@@ -338,6 +420,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         spouseAgeAtRetirement: expenseContext.spouseAgeAtRetirement,
         showTodaysDollars: expenseContext.showTodaysDollars,
         inflationRate: expenseContext.inflationRate,
+        widowAge: parseFloat(document.getElementById('widow-age').value) || 0,
         primaryAnnuityAge: parseFloat(document.getElementById('primary-annuity-age').value) || 0,
         spouseAnnuityAge: parseFloat(document.getElementById('spouse-annuity-age').value) || 0,
         primaryAnnuityIncome: parseCurrencyInput(document.getElementById('annuity-primary-income')),
@@ -350,4 +433,29 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
     }
 
     renderAnnuityProjectionTable(annuityRows);
+
+    const primarySocialSecurityAge = parseFloat(document.getElementById('primary-social-security-age').value) || 0;
+    const spouseSocialSecurityAge = parseFloat(document.getElementById('spouse-social-security-age').value) || 0;
+    const primaryBenefitAtFRA = parseCurrencyInput(document.getElementById('social-security-primary-benefit'));
+    const spouseBenefitAtFRA = parseCurrencyInput(document.getElementById('social-security-secondary-benefit'));
+
+    const socialSecurityContext = {
+        retirementAge,
+        yearsToRetirement,
+        spouseAgeAtRetirement: expenseContext.spouseAgeAtRetirement,
+        showTodaysDollars: expenseContext.showTodaysDollars,
+        inflationRate: expenseContext.inflationRate,
+        widowAge: annuityContext.widowAge,
+        primaryClaimAge: primarySocialSecurityAge,
+        spouseClaimAge: spouseSocialSecurityAge,
+        primaryMonthlyBenefit: calculateSocialSecurityMonthlyBenefit(primaryBenefitAtFRA, primarySocialSecurityAge),
+        spouseMonthlyBenefit: calculateSocialSecurityMonthlyBenefit(spouseBenefitAtFRA, spouseSocialSecurityAge),
+    };
+
+    const socialSecurityRows = [];
+    for (let year = 1; year <= projectionYears; year++) {
+        socialSecurityRows.push(calculateSocialSecurityYear(year, socialSecurityContext));
+    }
+
+    renderSocialSecurityProjectionTable(socialSecurityRows);
 });

@@ -73,7 +73,7 @@
                                 </span>
                             </label>
                             <input type="number" id="primary-social-security-age" name="primary-social-security-age"
-                                min="62" max="67" value="67" placeholder="e.g., 67" />
+                                min="62" max="70" value="67" placeholder="e.g., 67" />
                         </div>
                         <div class="input-group">
                             <label for="primary-annuity-age">Annuity Age
@@ -739,6 +739,26 @@
                             </tr>
                         </thead>
                         <tbody id="annuity-projection-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Social Security Projection Results -->
+            <section class="top-section" id="social-security-projection-section" hidden>
+                <h2 class="section-title">Social Security Benefit Projection</h2>
+                <div class="table-scroll">
+                    <table class="projection-table" id="social-security-projection-table">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Primary Age</th>
+                                <th>Spouse Age</th>
+                                <th>Primary SS</th>
+                                <th>Spouse SS</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="social-security-projection-tbody"></tbody>
                     </table>
                 </div>
             </section>
