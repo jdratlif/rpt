@@ -124,21 +124,50 @@ taxTablesModal.addEventListener('click', (event) => {
 // proportion as the balance) each month. Monthly compounding is used instead of
 // a single annual lump-sum growth step because contributions actually arrive
 // throughout the year and should start compounding as soon as they land.
+// Returns the stock/bond sub-balances separately (rather than their sum) since
+// differing returns drift the split away from stockFraction/bondFraction, and
+// the withdrawal simulation below needs each account's actual stock/bond mix.
 function projectAccountBalance(
     startingBalance, monthlyContribution, stockFraction, bondFraction,
     monthlyStockReturn, monthlyBondReturn, months
 ) {
-    let stockValue = startingBalance * stockFraction;
-    let bondValue = startingBalance * bondFraction;
+    let stock = startingBalance * stockFraction;
+    let bond = startingBalance * bondFraction;
     const contributionStock = monthlyContribution * stockFraction;
     const contributionBond = monthlyContribution * bondFraction;
 
     for (let month = 0; month < months; month++) {
-        stockValue = stockValue * (1 + monthlyStockReturn) + contributionStock;
-        bondValue = bondValue * (1 + monthlyBondReturn) + contributionBond;
+        stock = stock * (1 + monthlyStockReturn) + contributionStock;
+        bond = bond * (1 + monthlyBondReturn) + contributionBond;
     }
 
-    return stockValue + bondValue;
+    return { stock, bond };
+}
+
+// Withdraws up to `amount` from an account's stock/bond sub-balances, in
+// proportion to its current stock/bond split, mutating the account in place.
+// Returns the amount actually withdrawn (less than requested once the account
+// runs dry), so the caller can carry any remainder to the next account.
+function withdrawFromAccount(account, amount) {
+    const balance = account.stock + account.bond;
+    if (amount <= 0 || balance <= 0) {
+        return 0;
+    }
+
+    const withdrawn = Math.min(amount, balance);
+    const stockShare = account.stock / balance;
+    account.stock -= withdrawn * stockShare;
+    account.bond -= withdrawn * (1 - stockShare);
+    return withdrawn;
+}
+
+// Grows an account's stock/bond sub-balances for the given number of months;
+// no further contributions are assumed once withdrawals have started.
+function growAccount(account, monthlyStockReturn, monthlyBondReturn, months) {
+    for (let month = 0; month < months; month++) {
+        account.stock *= 1 + monthlyStockReturn;
+        account.bond *= 1 + monthlyBondReturn;
+    }
 }
 
 // Formats a plain number as whole-dollar currency for read-only result display.
@@ -165,13 +194,15 @@ function calculateExpenseYear(yearIndex, context) {
         (primaryAge >= expense.startAge && primaryAge <= expense.endAge) ? expense.amount * 12 : 0
     );
 
-    const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
-    const inflationFactor = context.showTodaysDollars
-        ? 1
-        : Math.pow(1 + context.inflationRate, yearsFromToday);
+    const rawTotal = common + primaryPreMedicare + spousePreMedicare + primaryMedicare + spouseMedicare +
+        temporaryExpenses.reduce((sum, value) => sum + value, 0);
 
-    const total = (common + primaryPreMedicare + spousePreMedicare + primaryMedicare + spouseMedicare +
-        temporaryExpenses.reduce((sum, value) => sum + value, 0)) * inflationFactor;
+    const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
+    // nominalFactor is always applied (unlike inflationFactor below) since the
+    // withdrawal simulation needs true nominal dollars regardless of display mode.
+    const nominalFactor = Math.pow(1 + context.inflationRate, yearsFromToday);
+    const inflationFactor = context.showTodaysDollars ? 1 : nominalFactor;
+    const total = rawTotal * inflationFactor;
 
     return {
         year: yearIndex,
@@ -184,6 +215,7 @@ function calculateExpenseYear(yearIndex, context) {
         spouseMedicare: spouseMedicare * inflationFactor,
         temporaryExpenses: temporaryExpenses.map((value) => value * inflationFactor),
         total,
+        totalNominal: rawTotal * nominalFactor,
     };
 }
 
@@ -241,6 +273,8 @@ function calculateAnnuityYear(yearIndex, context) {
         primaryAnnuity: primaryAnnuity * deflationFactor,
         spouseAnnuity: spouseAnnuity * deflationFactor,
         total: (primaryAnnuity + spouseAnnuity) * deflationFactor,
+        // Already nominal (flat, non-COLA'd) -- no factor needed for the withdrawal simulation.
+        totalNominal: primaryAnnuity + spouseAnnuity,
     };
 }
 
@@ -306,9 +340,10 @@ function calculateSocialSecurityYear(yearIndex, context) {
     }
 
     const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
-    const inflationFactor = context.showTodaysDollars
-        ? 1
-        : Math.pow(1 + context.inflationRate, yearsFromToday);
+    // nominalFactor is always applied (unlike inflationFactor below) since the
+    // withdrawal simulation needs true nominal dollars regardless of display mode.
+    const nominalFactor = Math.pow(1 + context.inflationRate, yearsFromToday);
+    const inflationFactor = context.showTodaysDollars ? 1 : nominalFactor;
 
     return {
         year: yearIndex,
@@ -317,6 +352,7 @@ function calculateSocialSecurityYear(yearIndex, context) {
         primarySS: primarySS * inflationFactor,
         spouseSS: spouseSS * inflationFactor,
         total: (primarySS + spouseSS) * inflationFactor,
+        totalNominal: (primarySS + spouseSS) * nominalFactor,
     };
 }
 
@@ -340,6 +376,82 @@ function renderSocialSecurityProjectionTable(rows) {
     document.getElementById('social-security-projection-section').hidden = false;
 }
 
+// Each year, withdraws the shortfall between expenses and guaranteed income
+// (annuity + Social Security) from the portfolio -- taxable first, then
+// traditional (pre-tax), then Roth last, preserving tax-advantaged growth as
+// long as possible. Everything here runs in nominal dollars; the today's-dollars
+// conversion (like the annuity's) is only applied to the returned display values.
+// Any surplus (guaranteed income exceeding expenses) isn't reinvested -- it's
+// simply left unmodeled as extra cash flow outside the portfolio.
+function calculateWithdrawalYear(yearIndex, context, accounts) {
+    const primaryAge = context.retirementAge + (yearIndex - 1);
+    const spouseAge = context.spouseAgeAtRetirement + (yearIndex - 1);
+
+    const shortfall = Math.max(0, context.expensesNominal - context.incomeNominal);
+
+    let remaining = shortfall;
+    const taxableWithdrawal = withdrawFromAccount(accounts.taxable, remaining);
+    remaining -= taxableWithdrawal;
+    const traditionalWithdrawal = withdrawFromAccount(accounts.traditional, remaining);
+    remaining -= traditionalWithdrawal;
+    const rothWithdrawal = withdrawFromAccount(accounts.roth, remaining);
+    remaining -= rothWithdrawal;
+
+    // Whatever remains after the withdrawal grows for the rest of the year, so the
+    // ending balance reflects a full year of stock/bond returns on the reduced base.
+    growAccount(accounts.taxable, context.monthlyStockReturn, context.monthlyBondReturn, 12);
+    growAccount(accounts.traditional, context.monthlyStockReturn, context.monthlyBondReturn, 12);
+    growAccount(accounts.roth, context.monthlyStockReturn, context.monthlyBondReturn, 12);
+
+    const taxableBalance = accounts.taxable.stock + accounts.taxable.bond;
+    const traditionalBalance = accounts.traditional.stock + accounts.traditional.bond;
+    const rothBalance = accounts.roth.stock + accounts.roth.bond;
+
+    const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
+    const deflationFactor = context.showTodaysDollars
+        ? 1 / Math.pow(1 + context.inflationRate, yearsFromToday)
+        : 1;
+
+    return {
+        year: yearIndex,
+        primaryAge,
+        spouseAge,
+        taxableWithdrawal: taxableWithdrawal * deflationFactor,
+        traditionalWithdrawal: traditionalWithdrawal * deflationFactor,
+        rothWithdrawal: rothWithdrawal * deflationFactor,
+        totalWithdrawal: (taxableWithdrawal + traditionalWithdrawal + rothWithdrawal) * deflationFactor,
+        taxableBalance: taxableBalance * deflationFactor,
+        traditionalBalance: traditionalBalance * deflationFactor,
+        rothBalance: rothBalance * deflationFactor,
+        totalBalance: (taxableBalance + traditionalBalance + rothBalance) * deflationFactor,
+    };
+}
+
+function renderWithdrawalProjectionTable(rows) {
+    const tbody = document.getElementById('withdrawal-projection-tbody');
+    tbody.innerHTML = '';
+
+    rows.forEach((row) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${row.year}</td>
+            <td>${row.primaryAge}</td>
+            <td>${row.spouseAge}</td>
+            <td>${formatResultCurrency(row.taxableWithdrawal)}</td>
+            <td>${formatResultCurrency(row.traditionalWithdrawal)}</td>
+            <td>${formatResultCurrency(row.rothWithdrawal)}</td>
+            <td class="total-cell">${formatResultCurrency(row.totalWithdrawal)}</td>
+            <td>${formatResultCurrency(row.taxableBalance)}</td>
+            <td>${formatResultCurrency(row.traditionalBalance)}</td>
+            <td>${formatResultCurrency(row.rothBalance)}</td>
+            <td class="total-cell">${formatResultCurrency(row.totalBalance)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('withdrawal-projection-section').hidden = false;
+}
+
 document.getElementById('calculate-btn').addEventListener('click', () => {
     const retirementAge = parseFloat(document.getElementById('retirement-age').value) || 0;
     const primaryCurrentAge = parseFloat(document.getElementById('primary-current-age').value) || 0;
@@ -351,21 +463,24 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
     const monthlyStockReturn = parsePercentInput(document.getElementById('stock-return-percentage')) / 100 / 12;
     const monthlyBondReturn = parsePercentInput(document.getElementById('bond-return-percentage')) / 100 / 12;
 
-    const traditionalBalance = projectAccountBalance(
+    const traditionalAccount = projectAccountBalance(
         parseCurrencyInput(document.getElementById('traditional-retirement-balance')),
         parseCurrencyInput(document.getElementById('traditional-monthly-contribution')),
         stockFraction, bondFraction, monthlyStockReturn, monthlyBondReturn, monthsToRetirement
     );
-    const rothBalance = projectAccountBalance(
+    const rothAccount = projectAccountBalance(
         parseCurrencyInput(document.getElementById('roth-retirement-balance')),
         parseCurrencyInput(document.getElementById('roth-monthly-contribution')),
         stockFraction, bondFraction, monthlyStockReturn, monthlyBondReturn, monthsToRetirement
     );
-    const taxableBalance = projectAccountBalance(
+    const taxableAccount = projectAccountBalance(
         parseCurrencyInput(document.getElementById('taxable-balance')),
         parseCurrencyInput(document.getElementById('taxable-monthly-contribution')),
         stockFraction, bondFraction, monthlyStockReturn, monthlyBondReturn, monthsToRetirement
     );
+    const traditionalBalance = traditionalAccount.stock + traditionalAccount.bond;
+    const rothBalance = rothAccount.stock + rothAccount.bond;
+    const taxableBalance = taxableAccount.stock + taxableAccount.bond;
 
     // "Today's Dollars" discounts the nominal future balances back to present-day
     // purchasing power using the inflation rate over the years until retirement.
@@ -458,4 +573,33 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
     }
 
     renderSocialSecurityProjectionTable(socialSecurityRows);
+
+    // Start from the actual retirement-age stock/bond split (which may have drifted
+    // from stockFraction/bondFraction) rather than the plain traditional/roth/taxable
+    // totals, so withdrawals and post-withdrawal growth apply to the real mix.
+    const withdrawalAccounts = {
+        taxable: { stock: taxableAccount.stock, bond: taxableAccount.bond },
+        traditional: { stock: traditionalAccount.stock, bond: traditionalAccount.bond },
+        roth: { stock: rothAccount.stock, bond: rothAccount.bond },
+    };
+
+    const withdrawalContextBase = {
+        retirementAge,
+        yearsToRetirement,
+        spouseAgeAtRetirement: expenseContext.spouseAgeAtRetirement,
+        showTodaysDollars: expenseContext.showTodaysDollars,
+        inflationRate: expenseContext.inflationRate,
+        monthlyStockReturn,
+        monthlyBondReturn,
+    };
+
+    const withdrawalRows = [];
+    for (let year = 1; year <= projectionYears; year++) {
+        const expensesNominal = expenseRows[year - 1].totalNominal;
+        const incomeNominal = annuityRows[year - 1].totalNominal + socialSecurityRows[year - 1].totalNominal;
+        const yearContext = { ...withdrawalContextBase, expensesNominal, incomeNominal };
+        withdrawalRows.push(calculateWithdrawalYear(year, yearContext, withdrawalAccounts));
+    }
+
+    renderWithdrawalProjectionTable(withdrawalRows);
 });
