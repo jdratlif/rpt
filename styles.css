@@ -382,6 +382,51 @@ h1 {
     font-weight: 600;
 }
 
+/* Fix the Expense Projection table to fixed layout so the Temporary and One Time
+   columns stay the same width regardless of whether any individual expense is
+   non-zero. Without this, auto-layout expands a column as soon as one cell's
+   content (e.g. "$10,000 / $0 / $0") is wider than the all-zero case. */
+#expense-projection-table {
+    table-layout: fixed;
+}
+
+#expense-projection-table th:nth-child(1),
+#expense-projection-table td:nth-child(1) {
+    width: 5%;
+}
+
+#expense-projection-table th:nth-child(2),
+#expense-projection-table td:nth-child(2) {
+    width: 8%;
+}
+
+#expense-projection-table th:nth-child(3),
+#expense-projection-table td:nth-child(3) {
+    width: 11%;
+}
+
+#expense-projection-table th:nth-child(4),
+#expense-projection-table td:nth-child(4) {
+    width: 15%;
+}
+
+#expense-projection-table th:nth-child(5),
+#expense-projection-table td:nth-child(5) {
+    width: 11%;
+}
+
+#expense-projection-table th:nth-child(6),
+#expense-projection-table td:nth-child(6),
+#expense-projection-table th:nth-child(7),
+#expense-projection-table td:nth-child(7) {
+    width: 18%;
+}
+
+#expense-projection-table th:nth-child(8),
+#expense-projection-table td:nth-child(8) {
+    width: 14%;
+}
+
 .link-button {
     background: none;
     border: none;

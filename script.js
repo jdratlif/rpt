@@ -347,6 +347,9 @@ function calculateExpenseYear(yearIndex, context) {
     const temporaryExpenses = context.temporaryExpenses.map((expense) =>
         (primaryAge >= expense.startAge && primaryAge <= expense.endAge) ? expense.amount * 12 : 0
     );
+    const oneTimeExpenses = context.oneTimeExpenses.map((expense) =>
+        (expense.age > 0 && primaryAge === expense.age) ? expense.amount : 0
+    );
 
     // Primary is assumed deceased once the spouse reaches widow age, so his own
     // Medicare/pre-Medicare costs stop (the spouse's are unaffected). Only
@@ -377,7 +380,8 @@ function calculateExpenseYear(yearIndex, context) {
     const deflationFactor = context.showTodaysDollars ? 1 / nominalFactor : 1;
 
     const rawTotal = common + primaryPreMedicare + spousePreMedicare + primaryMedicare + spouseMedicare +
-        temporaryExpenses.reduce((sum, value) => sum + value, 0);
+        temporaryExpenses.reduce((sum, value) => sum + value, 0) +
+        oneTimeExpenses.reduce((sum, value) => sum + value, 0);
     const total = rawTotal * inflationFactor + irmaaSurchargeNominal * deflationFactor;
 
     return {
@@ -395,6 +399,7 @@ function calculateExpenseYear(yearIndex, context) {
         primaryIrmaa: primaryIrmaaNominal * deflationFactor,
         spouseIrmaa: spouseIrmaaNominal * deflationFactor,
         temporaryExpenses: temporaryExpenses.map((value) => value * inflationFactor),
+        oneTimeExpenses: oneTimeExpenses.map((value) => value * inflationFactor),
         total,
         totalNominal: rawTotal * nominalFactor + irmaaSurchargeNominal,
     };
@@ -413,6 +418,7 @@ function renderExpenseProjectionTable(rows) {
             row.primaryIrmaa, row.spouseIrmaa, row.hasSpouse, row.isWidowed, formatResultCurrency
         );
         const temporaryCell = row.temporaryExpenses.map(formatResultCurrency).join(' / ');
+        const oneTimeCell = row.oneTimeExpenses.map(formatResultCurrency).join(' / ');
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -422,6 +428,7 @@ function renderExpenseProjectionTable(rows) {
             <td>${medicalCell}</td>
             <td>${irmaaCell}</td>
             <td>${temporaryCell}</td>
+            <td>${oneTimeCell}</td>
             <td class="total-cell">${formatResultCurrency(row.total)}</td>
         `;
         tbody.appendChild(tr);
@@ -1102,6 +1109,10 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
             startAge: parseFloat(document.getElementById(`temporary-expense-${num}-start-age`).value) || 0,
             endAge: parseFloat(document.getElementById(`temporary-expense-${num}-end-age`).value) || 0,
             amount: parseCurrencyInput(document.getElementById(`temporary-expense-${num}-amount`)),
+        })),
+        oneTimeExpenses: [1, 2, 3].map((num) => ({
+            age: parseFloat(document.getElementById(`one-time-expense-${num}-age`).value) || 0,
+            amount: parseCurrencyInput(document.getElementById(`one-time-expense-${num}-amount`)),
         })),
     };
 
