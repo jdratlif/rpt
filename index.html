@@ -131,7 +131,7 @@
                     <div class="top-person-column">
                         <h3 class="person-title">Inflation</h3>
                         <div class="input-group">
-                            <label for="inflation-percentage">Inflation %
+                            <label for="inflation-percentage">Annual Rate
                                 <span class="tooltip">
                                     ?
                                     <span class="tooltip-text">Expected annual inflation rate</span>
@@ -146,7 +146,7 @@
                         <div class="input-group checkbox-group">
                             <label for="todays-dollars">
                                 <input type="checkbox" id="todays-dollars" name="todays-dollars" />
-                                Today's Dollars
+                                Show in Today's Dollars
                                 <span class="tooltip">
                                     ?
                                     <span class="tooltip-text">Show projections deflated to today's dollar value</span>
@@ -155,9 +155,9 @@
                         </div>
                     </div>
                     <div class="top-person-column">
-                        <h3 class="person-title">Portfolio Returns</h3>
+                        <h3 class="person-title">Portfolio</h3>
                         <div class="input-group">
-                            <label for="stock-return-percentage">Stock %
+                            <label for="stock-return-percentage">Stock Returns
                                 <span class="tooltip">
                                     ?
                                     <span class="tooltip-text">Expected annual rate of return for equity
@@ -172,7 +172,7 @@
                             </div>
                         </div>
                         <div class="input-group">
-                            <label for="bond-return-percentage">Bond %
+                            <label for="bond-return-percentage">Bond Returns
                                 <span class="tooltip">
                                     ?
                                     <span class="tooltip-text">Expected annual rate of return for fixed income
@@ -182,6 +182,22 @@
                             <div class="percent-input-wrapper">
                                 <input type="text" inputmode="decimal" class="percent-input" id="bond-return-percentage"
                                     name="bond-return-percentage" value="3" placeholder="e.g., 3" />
+                                <span class="percent-symbol">%</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="taxable-basis-percentage">Taxable Basis
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Estimated percentage of the taxable account that is
+                                        cost basis (not subject to tax); the remainder is treated as long term
+                                        capital gains</span>
+                                </span>
+                            </label>
+                            <div class="percent-input-wrapper">
+                                <input type="text" inputmode="decimal" class="percent-input"
+                                    id="taxable-basis-percentage" name="taxable-basis-percentage" value="20"
+                                    placeholder="e.g., 20" />
                                 <span class="percent-symbol">%</span>
                             </div>
                         </div>
