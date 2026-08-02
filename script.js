@@ -114,6 +114,82 @@ document.getElementById('reset-btn').addEventListener('click', () => {
     updateSpouseInputsDisabled();
 });
 
+const USER_PRESET_KEY = 'retirementToolUserPreset';
+
+// Collect every input's current value so it can be persisted in localStorage.
+function collectInputValues() {
+    const values = {};
+    document.querySelectorAll('#retirement-form input').forEach((input) => {
+        if (input.type === 'checkbox') {
+            values[input.id] = input.checked;
+        } else {
+            values[input.id] = input.value;
+        }
+    });
+    return values;
+}
+
+// Apply a previously-collected set of input values and reformat fields that need
+// currency/percent formatting or derived state (bond %, disabled spouse inputs).
+function applyInputValues(values) {
+    if (!values) {
+        return;
+    }
+    document.querySelectorAll('#retirement-form input').forEach((input) => {
+        if (!(input.id in values)) {
+            return;
+        }
+        if (input.type === 'checkbox') {
+            input.checked = values[input.id];
+        } else {
+            input.value = values[input.id];
+        }
+    });
+    document.querySelectorAll('.currency-input').forEach(formatCurrencyInput);
+    document.querySelectorAll('.percent-input:not(#bond-percentage)').forEach(formatPercentInput);
+    updateBondPercentage();
+    updateSpouseInputsDisabled();
+}
+
+function saveUserPreset() {
+    try {
+        localStorage.setItem(USER_PRESET_KEY, JSON.stringify(collectInputValues()));
+        alert('User preset saved.');
+    } catch (error) {
+        console.error('Failed to save user preset:', error);
+        alert('Could not save preset. Browser storage may be disabled or full.');
+    }
+}
+
+function loadUserPreset() {
+    try {
+        const stored = localStorage.getItem(USER_PRESET_KEY);
+        if (stored === null) {
+            alert('No user preset found.');
+            return;
+        }
+        applyInputValues(JSON.parse(stored));
+    } catch (error) {
+        console.error('Failed to load user preset:', error);
+        alert('Could not load preset.');
+    }
+}
+
+function loadUserPresetOnStartup() {
+    try {
+        const stored = localStorage.getItem(USER_PRESET_KEY);
+        if (stored !== null) {
+            applyInputValues(JSON.parse(stored));
+        }
+    } catch (error) {
+        console.error('Failed to load user preset on startup:', error);
+    }
+}
+
+document.getElementById('save-user-preset-btn').addEventListener('click', saveUserPreset);
+document.getElementById('load-user-preset-btn').addEventListener('click', loadUserPreset);
+loadUserPresetOnStartup();
+
 // Input sections (Ages/Rates/Portfolio/Roth Conversions/Income/Expenses) and
 // result sections (Summary/Expenses/Annuity/Social Security/Withdrawals/Taxes)
 // each have their own independent tab-list + tab-panels pair; scope switching to
