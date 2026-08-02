@@ -146,6 +146,73 @@ function formatResultCurrency(value) {
     return `$${Math.round(value).toLocaleString()}`;
 }
 
+// Calculates one projection year's expenses. Inputs are assumed to be given in
+// today's (primary's current age) dollars; when not showing "today's dollars",
+// they're inflated up to that year's nominal amount using yearsFromToday, which
+// spans from the primary's current age through the given projection year.
+function calculateExpenseYear(yearIndex, context) {
+    const primaryAge = context.retirementAge + (yearIndex - 1);
+    const spouseAge = context.spouseAgeAtRetirement + (yearIndex - 1);
+
+    const common = context.monthlyExpenses * 12;
+    const primaryPreMedicare = primaryAge < 65 ? context.primaryPreMedicareExpenses * 12 : 0;
+    const spousePreMedicare = spouseAge < 65 ? context.spousePreMedicareExpenses * 12 : 0;
+    // Part B is a fixed per-person premium once Medicare eligibility starts at 65;
+    // Part D is excluded since its premium varies widely by plan.
+    const primaryMedicare = primaryAge >= 65 ? context.medicarePartBPremium * 12 : 0;
+    const spouseMedicare = spouseAge >= 65 ? context.medicarePartBPremium * 12 : 0;
+    const temporaryExpenses = context.temporaryExpenses.map((expense) =>
+        (primaryAge >= expense.startAge && primaryAge <= expense.endAge) ? expense.amount * 12 : 0
+    );
+
+    const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
+    const inflationFactor = context.showTodaysDollars
+        ? 1
+        : Math.pow(1 + context.inflationRate, yearsFromToday);
+
+    const total = (common + primaryPreMedicare + spousePreMedicare + primaryMedicare + spouseMedicare +
+        temporaryExpenses.reduce((sum, value) => sum + value, 0)) * inflationFactor;
+
+    return {
+        year: yearIndex,
+        primaryAge,
+        spouseAge,
+        common: common * inflationFactor,
+        primaryPreMedicare: primaryPreMedicare * inflationFactor,
+        spousePreMedicare: spousePreMedicare * inflationFactor,
+        primaryMedicare: primaryMedicare * inflationFactor,
+        spouseMedicare: spouseMedicare * inflationFactor,
+        temporaryExpenses: temporaryExpenses.map((value) => value * inflationFactor),
+        total,
+    };
+}
+
+function renderExpenseProjectionTable(rows) {
+    const tbody = document.getElementById('expense-projection-tbody');
+    tbody.innerHTML = '';
+
+    rows.forEach((row) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${row.year}</td>
+            <td>${row.primaryAge}</td>
+            <td>${row.spouseAge}</td>
+            <td>${formatResultCurrency(row.common)}</td>
+            <td>${formatResultCurrency(row.primaryPreMedicare)}</td>
+            <td>${formatResultCurrency(row.spousePreMedicare)}</td>
+            <td>${formatResultCurrency(row.primaryMedicare)}</td>
+            <td>${formatResultCurrency(row.spouseMedicare)}</td>
+            <td>${formatResultCurrency(row.temporaryExpenses[0])}</td>
+            <td>${formatResultCurrency(row.temporaryExpenses[1])}</td>
+            <td>${formatResultCurrency(row.temporaryExpenses[2])}</td>
+            <td class="total-cell">${formatResultCurrency(row.total)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('expense-projection-section').hidden = false;
+}
+
 document.getElementById('calculate-btn').addEventListener('click', () => {
     const retirementAge = parseFloat(document.getElementById('retirement-age').value) || 0;
     const primaryCurrentAge = parseFloat(document.getElementById('primary-current-age').value) || 0;
@@ -192,4 +259,31 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         formatResultCurrency(traditionalResult + rothResult + taxableResult);
 
     document.getElementById('results-section').hidden = false;
+
+    const projectionYears = parseFloat(document.getElementById('projection-years').value) || 0;
+    const spouseCurrentAge = parseFloat(document.getElementById('spouse-current-age').value) || 0;
+
+    const expenseContext = {
+        retirementAge,
+        yearsToRetirement,
+        spouseAgeAtRetirement: spouseCurrentAge + yearsToRetirement,
+        showTodaysDollars: document.getElementById('todays-dollars').checked,
+        inflationRate: parsePercentInput(document.getElementById('inflation-percentage')) / 100,
+        monthlyExpenses: parseCurrencyInput(document.getElementById('monthly-expenses')),
+        primaryPreMedicareExpenses: parseCurrencyInput(document.getElementById('pre-medicare-expenses-primary')),
+        spousePreMedicareExpenses: parseCurrencyInput(document.getElementById('pre-medicare-expenses-spouse')),
+        medicarePartBPremium: parseCurrencyInput(document.getElementById('medicare-part-b-premium')),
+        temporaryExpenses: [1, 2, 3].map((num) => ({
+            startAge: parseFloat(document.getElementById(`temporary-expense-${num}-start-age`).value) || 0,
+            endAge: parseFloat(document.getElementById(`temporary-expense-${num}-end-age`).value) || 0,
+            amount: parseCurrencyInput(document.getElementById(`temporary-expense-${num}-amount`)),
+        })),
+    };
+
+    const expenseRows = [];
+    for (let year = 1; year <= projectionYears; year++) {
+        expenseRows.push(calculateExpenseYear(year, expenseContext));
+    }
+
+    renderExpenseProjectionTable(expenseRows);
 });

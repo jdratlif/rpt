@@ -482,7 +482,7 @@
                             </div>
                         </div>
                         <div class="input-group">
-                            <label for="pre-medicare-expenses">Primary Pre-Medicare
+                            <label for="pre-medicare-expenses-primary">Primary Pre-Medicare
                                 <span class="tooltip">
                                     ?
                                     <span class="tooltip-text">Estimated additional monthly healthcare costs before
@@ -491,12 +491,13 @@
                             </label>
                             <div class="currency-input-wrapper">
                                 <span class="currency-symbol">$</span>
-                                <input type="text" inputmode="decimal" class="currency-input" id="pre-medicare-expenses"
-                                    name="pre-medicare-expenses" value="800" placeholder="e.g., 1,500" />
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="pre-medicare-expenses-primary" name="pre-medicare-expenses-primary" value="800"
+                                    placeholder="e.g., 1,500" />
                             </div>
                         </div>
                         <div class="input-group">
-                            <label for="pre-medicare-expenses">Spouse Pre-Medicare
+                            <label for="pre-medicare-expenses-spouse">Spouse Pre-Medicare
                                 <span class="tooltip">
                                     ?
                                     <span class="tooltip-text">Estimated additional monthly healthcare costs before
@@ -505,8 +506,24 @@
                             </label>
                             <div class="currency-input-wrapper">
                                 <span class="currency-symbol">$</span>
-                                <input type="text" inputmode="decimal" class="currency-input" id="pre-medicare-expenses"
-                                    name="pre-medicare-expenses" value="800" placeholder="e.g., 1,500" />
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="pre-medicare-expenses-spouse" name="pre-medicare-expenses-spouse" value="800"
+                                    placeholder="e.g., 1,500" />
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="medicare-part-b-premium">Medicare Premiums
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Medicare Premium, applied per person once they turn
+                                        65.</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="medicare-part-b-premium" name="medicare-part-b-premium" value="235"
+                                    placeholder="e.g., 202.90" />
                             </div>
                         </div>
                     </div>
@@ -677,6 +694,32 @@
                         <label>Total</label>
                         <div class="result-value" id="result-total-balance">$0</div>
                     </div>
+                </div>
+            </section>
+
+            <!-- Expense Projection Results -->
+            <section class="top-section" id="expense-projection-section" hidden>
+                <h2 class="section-title">Expense Projection</h2>
+                <div class="table-scroll">
+                    <table class="projection-table" id="expense-projection-table">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Primary Age</th>
+                                <th>Spouse Age</th>
+                                <th>Common</th>
+                                <th>Primary Pre-Medicare</th>
+                                <th>Spouse Pre-Medicare</th>
+                                <th>Primary Medicare</th>
+                                <th>Spouse Medicare</th>
+                                <th>Temporary 1</th>
+                                <th>Temporary 2</th>
+                                <th>Temporary 3</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expense-projection-tbody"></tbody>
+                    </table>
                 </div>
             </section>
 
