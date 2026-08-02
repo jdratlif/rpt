@@ -216,6 +216,14 @@ function formatResultCurrency(value) {
     return `$${Math.round(value).toLocaleString()}`;
 }
 
+// Compact single-column Age display shared by all projection tables: just the
+// primary's age when unmarried, "primary / spouse" when married, or "&dagger; /
+// spouse" once the spouse has outlived the primary (widow age reached).
+function formatAgeCell(primaryAge, spouseAge, hasSpouse, isWidowed) {
+    const primaryAgeDisplay = isWidowed ? '&dagger;' : String(primaryAge);
+    return hasSpouse ? `${primaryAgeDisplay} / ${spouseAge}` : primaryAgeDisplay;
+}
+
 // Calculates one projection year's expenses. Inputs are assumed to be given in
 // today's (primary's current age) dollars; when not showing "today's dollars",
 // they're inflated up to that year's nominal amount using yearsFromToday, which
@@ -272,6 +280,9 @@ function calculateExpenseYear(yearIndex, context) {
         year: yearIndex,
         primaryAge,
         spouseAge,
+        hasSpouse: context.hasSpouse,
+        // Marks the primary as presumed deceased for the Age column's dagger marker.
+        isWidowed: context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge,
         common: common * inflationFactor,
         primaryPreMedicare: primaryPreMedicare * inflationFactor,
         spousePreMedicare: spousePreMedicare * inflationFactor,
@@ -289,11 +300,12 @@ function renderExpenseProjectionTable(rows) {
     tbody.innerHTML = '';
 
     rows.forEach((row) => {
+        const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${row.year}</td>
-            <td>${row.primaryAge}</td>
-            <td>${row.spouseAge}</td>
+            <td>${ageCell}</td>
             <td>${formatResultCurrency(row.common)}</td>
             <td>${formatResultCurrency(row.primaryPreMedicare)}</td>
             <td>${formatResultCurrency(row.spousePreMedicare)}</td>
@@ -335,6 +347,8 @@ function calculateAnnuityYear(yearIndex, context) {
         year: yearIndex,
         primaryAge,
         spouseAge,
+        hasSpouse: context.hasSpouse,
+        isWidowed: context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge,
         primaryAnnuity: primaryAnnuity * deflationFactor,
         spouseAnnuity: spouseAnnuity * deflationFactor,
         total: (primaryAnnuity + spouseAnnuity) * deflationFactor,
@@ -348,11 +362,11 @@ function renderAnnuityProjectionTable(rows) {
     tbody.innerHTML = '';
 
     rows.forEach((row) => {
+        const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${row.year}</td>
-            <td>${row.primaryAge}</td>
-            <td>${row.spouseAge}</td>
+            <td>${ageCell}</td>
             <td>${formatResultCurrency(row.primaryAnnuity)}</td>
             <td>${formatResultCurrency(row.spouseAnnuity)}</td>
             <td class="total-cell">${formatResultCurrency(row.total)}</td>
@@ -413,6 +427,8 @@ function calculateSocialSecurityYear(yearIndex, context) {
         year: yearIndex,
         primaryAge,
         spouseAge,
+        hasSpouse: context.hasSpouse,
+        isWidowed: context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge,
         primarySS: primarySS * inflationFactor,
         spouseSS: spouseSS * inflationFactor,
         total: (primarySS + spouseSS) * inflationFactor,
@@ -425,11 +441,11 @@ function renderSocialSecurityProjectionTable(rows) {
     tbody.innerHTML = '';
 
     rows.forEach((row) => {
+        const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${row.year}</td>
-            <td>${row.primaryAge}</td>
-            <td>${row.spouseAge}</td>
+            <td>${ageCell}</td>
             <td>${formatResultCurrency(row.primarySS)}</td>
             <td>${formatResultCurrency(row.spouseSS)}</td>
             <td class="total-cell">${formatResultCurrency(row.total)}</td>
@@ -532,6 +548,8 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
         year: yearIndex,
         primaryAge,
         spouseAge,
+        hasSpouse: context.hasSpouse,
+        isWidowed: context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge,
         rmdAmount: rmdAmount * deflationFactor,
         taxableWithdrawal: taxableWithdrawal * deflationFactor,
         traditionalWithdrawal: traditionalWithdrawal * deflationFactor,
@@ -556,11 +574,11 @@ function renderWithdrawalProjectionTable(rows) {
     tbody.innerHTML = '';
 
     rows.forEach((row) => {
+        const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${row.year}</td>
-            <td>${row.primaryAge}</td>
-            <td>${row.spouseAge}</td>
+            <td>${ageCell}</td>
             <td>${formatResultCurrency(row.rmdAmount)}</td>
             <td>${formatResultCurrency(row.taxableWithdrawal)}</td>
             <td>${formatResultCurrency(row.traditionalWithdrawal)}</td>
@@ -790,6 +808,8 @@ function calculateTaxYear(yearIndex, context) {
         year: yearIndex,
         primaryAge,
         spouseAge,
+        hasSpouse: context.hasSpouse,
+        isWidowed,
         filingStatus: filingStatus === 'mfj' ? 'MFJ' : 'Single',
         // Raw (lowercase) values, plus the nominal MAGI, feed the IRMAA lookback
         // 2 years later -- keep these nominal/unconverted regardless of display mode.
@@ -819,11 +839,11 @@ function renderTaxProjectionTable(rows) {
     tbody.innerHTML = '';
 
     rows.forEach((row) => {
+        const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${row.year}</td>
-            <td>${row.primaryAge}</td>
-            <td>${row.spouseAge}</td>
+            <td>${ageCell}</td>
             <td>${row.filingStatus}</td>
             <td>${formatResultCurrency(row.ordinaryIncome)}</td>
             <td>${formatResultCurrency(row.ltcgIncome)}</td>
@@ -970,6 +990,8 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         spouseAgeAtRetirement: expenseContext.spouseAgeAtRetirement,
         showTodaysDollars: expenseContext.showTodaysDollars,
         inflationRate: expenseContext.inflationRate,
+        hasSpouse: expenseContext.hasSpouse,
+        widowAge: expenseContext.widowAge,
         monthlyStockReturn,
         monthlyBondReturn,
     };
