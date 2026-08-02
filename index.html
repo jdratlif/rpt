@@ -441,6 +441,196 @@
                 </div>
             </section>
 
+            <!-- Expenses Section -->
+            <section class="top-section" id="expenses-section">
+                <h2 class="section-title">Expenses</h2>
+                <div class="top-input-grid">
+                    <div class="top-person-column">
+                        <h3 class="person-title">Monthly</h3>
+                        <div class="input-group">
+                            <label for="monthly-expenses">General
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Estimated essential monthly living expenses in
+                                        retirement</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input" id="monthly-expenses"
+                                    name="monthly-expenses" value="4000" placeholder="e.g., 4,000" />
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="pre-medicare-expenses">Primary Pre-Medicare
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Estimated additional monthly healthcare costs before
+                                        Medicare eligibility. Will no longer be included when primary is 65.</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input" id="pre-medicare-expenses"
+                                    name="pre-medicare-expenses" value="800" placeholder="e.g., 1,500" />
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="pre-medicare-expenses">Spouse Pre-Medicare
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Estimated additional monthly healthcare costs before
+                                        Medicare eligibility. Will no longer be included when Spouse is 65.</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input" id="pre-medicare-expenses"
+                                    name="pre-medicare-expenses" value="800" placeholder="e.g., 1,500" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="top-person-column">
+                        <h3 class="person-title">Temporary
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Expenses that do not span the length of retirement, e.g.
+                                    loans or property taxes and insurance after paying off a mortgage.</span>
+                            </span>
+                        </h3>
+                        <div class="expense-row">
+                            <div class="expense-row-label">Expense 1</div>
+                            <div class="top-input-grid horizontal">
+                                <div class="input-group">
+                                    <label for="temporary-expense-1-start-age">Start Age
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Age at which this temporary expense
+                                                begins</span>
+                                        </span>
+                                    </label>
+                                    <input type="number" id="temporary-expense-1-start-age"
+                                        name="temporary-expense-1-start-age" min="1" max="120" value="60"
+                                        placeholder="e.g., 60" />
+                                </div>
+                                <div class="input-group">
+                                    <label for="temporary-expense-1-end-age">End Age
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Age at which this temporary expense ends</span>
+                                        </span>
+                                    </label>
+                                    <input type="number" id="temporary-expense-1-end-age"
+                                        name="temporary-expense-1-end-age" min="1" max="120" value="75"
+                                        placeholder="e.g., 75" />
+                                </div>
+                                <div class="input-group">
+                                    <label for="temporary-expense-1-amount">Monthly Amount
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Monthly amount for this temporary expense. Set
+                                                to 0 if not applicable.</span>
+                                        </span>
+                                    </label>
+                                    <div class="currency-input-wrapper">
+                                        <span class="currency-symbol">$</span>
+                                        <input type="text" inputmode="decimal" class="currency-input"
+                                            id="temporary-expense-1-amount" name="temporary-expense-1-amount" value="0"
+                                            placeholder="e.g., 0" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="expense-row">
+                            <div class="expense-row-label">Expense 2</div>
+                            <div class="top-input-grid horizontal">
+                                <div class="input-group">
+                                    <label for="temporary-expense-2-start-age">Start Age
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Age at which this temporary expense
+                                                begins</span>
+                                        </span>
+                                    </label>
+                                    <input type="number" id="temporary-expense-2-start-age"
+                                        name="temporary-expense-2-start-age" min="1" max="120" value="60"
+                                        placeholder="e.g., 60" />
+                                </div>
+                                <div class="input-group">
+                                    <label for="temporary-expense-2-end-age">End Age
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Age at which this temporary expense ends</span>
+                                        </span>
+                                    </label>
+                                    <input type="number" id="temporary-expense-2-end-age"
+                                        name="temporary-expense-2-end-age" min="1" max="120" value="75"
+                                        placeholder="e.g., 75" />
+                                </div>
+                                <div class="input-group">
+                                    <label for="temporary-expense-2-amount">Monthly Amount
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Monthly amount for this temporary expense. Set
+                                                to 0 if not applicable.</span>
+                                        </span>
+                                    </label>
+                                    <div class="currency-input-wrapper">
+                                        <span class="currency-symbol">$</span>
+                                        <input type="text" inputmode="decimal" class="currency-input"
+                                            id="temporary-expense-2-amount" name="temporary-expense-2-amount" value="0"
+                                            placeholder="e.g., 0" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="expense-row">
+                            <div class="expense-row-label">Expense 3</div>
+                            <div class="top-input-grid horizontal">
+                                <div class="input-group">
+                                    <label for="temporary-expense-3-start-age">Start Age
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Age at which this temporary expense
+                                                begins</span>
+                                        </span>
+                                    </label>
+                                    <input type="number" id="temporary-expense-3-start-age"
+                                        name="temporary-expense-3-start-age" min="1" max="120" value="60"
+                                        placeholder="e.g., 60" />
+                                </div>
+                                <div class="input-group">
+                                    <label for="temporary-expense-3-end-age">End Age
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Age at which this temporary expense ends</span>
+                                        </span>
+                                    </label>
+                                    <input type="number" id="temporary-expense-3-end-age"
+                                        name="temporary-expense-3-end-age" min="1" max="120" value="75"
+                                        placeholder="e.g., 75" />
+                                </div>
+                                <div class="input-group">
+                                    <label for="temporary-expense-3-amount">Monthly Amount
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Monthly amount for this temporary expense. Set
+                                                to 0 if not applicable.</span>
+                                        </span>
+                                    </label>
+                                    <div class="currency-input-wrapper">
+                                        <span class="currency-symbol">$</span>
+                                        <input type="text" inputmode="decimal" class="currency-input"
+                                            id="temporary-expense-3-amount" name="temporary-expense-3-amount" value="0"
+                                            placeholder="e.g., 0" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Actions -->
             <div class="actions">
                 <button type="button" id="calculate-btn">Calculate</button>
