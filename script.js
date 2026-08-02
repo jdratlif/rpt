@@ -383,6 +383,28 @@ function renderSocialSecurityProjectionTable(rows) {
     document.getElementById('social-security-projection-section').hidden = false;
 }
 
+// SECURE 2.0 requires traditional IRA/401(k) distributions to begin at age 73
+// (current law through 2032; rises to 75 in 2033, which this simplified
+// calculator doesn't model).
+const RMD_AGE = 73;
+
+// IRS Uniform Lifetime Table (Table III, Pub. 590-B) applicable denominators,
+// used for owners whose spouse isn't both the sole beneficiary and more than 10
+// years younger -- the common case this simplified calculator assumes.
+const RMD_UNIFORM_LIFETIME_DIVISORS = {
+    72: 27.4, 73: 26.5, 74: 25.5, 75: 24.6, 76: 23.7, 77: 22.9, 78: 22.0, 79: 21.1,
+    80: 20.2, 81: 19.4, 82: 18.5, 83: 17.7, 84: 16.8, 85: 16.0, 86: 15.2, 87: 14.4,
+    88: 13.7, 89: 12.9, 90: 12.2, 91: 11.5, 92: 10.8, 93: 10.1, 94: 9.5, 95: 8.9,
+    96: 8.4, 97: 7.8, 98: 7.3, 99: 6.8, 100: 6.4, 101: 6.0, 102: 5.6, 103: 5.2,
+    104: 4.9, 105: 4.6, 106: 4.3, 107: 4.1, 108: 3.9, 109: 3.7, 110: 3.5, 111: 3.4,
+    112: 3.3, 113: 3.1, 114: 3.0, 115: 2.9, 116: 2.8, 117: 2.7, 118: 2.5, 119: 2.3,
+};
+const RMD_MAX_AGE_DIVISOR = 2.0; // Table bottoms out at age 120 and older.
+
+function getRmdDivisor(age) {
+    return RMD_UNIFORM_LIFETIME_DIVISORS[age] ?? RMD_MAX_AGE_DIVISOR;
+}
+
 // Each year, withdraws the shortfall between expenses and guaranteed income
 // (annuity + Social Security) from the portfolio -- taxable first, then
 // traditional (pre-tax), then Roth last, preserving tax-advantaged growth as
@@ -396,11 +418,24 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
 
     const shortfall = Math.max(0, context.expensesNominal - context.incomeNominal);
 
+    // RMDs are based on the traditional balance at the end of the prior year (i.e.
+    // its balance here, before this year's withdrawal) and the primary's age;
+    // widow status is ignored for this calculation for simplicity.
+    const traditionalBalanceBeforeWithdrawal = accounts.traditional.stock + accounts.traditional.bond;
+    const rmdAmount = primaryAge >= RMD_AGE
+        ? traditionalBalanceBeforeWithdrawal / getRmdDivisor(primaryAge)
+        : 0;
+
     let remaining = shortfall;
     const taxableWithdrawal = withdrawFromAccount(accounts.taxable, remaining);
     remaining -= taxableWithdrawal;
-    const traditionalWithdrawal = withdrawFromAccount(accounts.traditional, remaining);
-    remaining -= traditionalWithdrawal;
+
+    // The traditional withdrawal must be bumped up to the RMD even if that's more
+    // than needed to cover expenses; the unneeded excess is simply left unmodeled
+    // as extra cash flow outside the portfolio, like any other income surplus.
+    const traditionalWithdrawal = withdrawFromAccount(accounts.traditional, Math.max(remaining, rmdAmount));
+    remaining = Math.max(0, remaining - traditionalWithdrawal);
+
     const rothWithdrawal = withdrawFromAccount(accounts.roth, remaining);
     remaining -= rothWithdrawal;
 
@@ -423,6 +458,7 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
         year: yearIndex,
         primaryAge,
         spouseAge,
+        rmdAmount: rmdAmount * deflationFactor,
         taxableWithdrawal: taxableWithdrawal * deflationFactor,
         traditionalWithdrawal: traditionalWithdrawal * deflationFactor,
         rothWithdrawal: rothWithdrawal * deflationFactor,
@@ -444,6 +480,7 @@ function renderWithdrawalProjectionTable(rows) {
             <td>${row.year}</td>
             <td>${row.primaryAge}</td>
             <td>${row.spouseAge}</td>
+            <td>${formatResultCurrency(row.rmdAmount)}</td>
             <td>${formatResultCurrency(row.taxableWithdrawal)}</td>
             <td>${formatResultCurrency(row.traditionalWithdrawal)}</td>
             <td>${formatResultCurrency(row.rothWithdrawal)}</td>
