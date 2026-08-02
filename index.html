@@ -190,6 +190,11 @@
                 </div>
             </section>
 
+            <!-- Tax Tables Trigger -->
+            <div class="tax-tables-trigger">
+                <button type="button" id="open-tax-tables-btn" class="link-button">Edit Tax Tables (Advanced)</button>
+            </div>
+
             <!-- Portfolio Section -->
             <section class="top-section" id="portfolio-section">
                 <h2 class="section-title">Portfolio</h2>
@@ -636,6 +641,482 @@
                 <button type="button" id="calculate-btn">Calculate</button>
                 <button type="button" id="reset-btn">Reset</button>
             </div>
+
+            <!-- Tax Tables Modal -->
+            <dialog id="tax-tables-modal">
+                <div class="modal-header">
+                    <h2 class="section-title">Tax Tables</h2>
+                    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+                </div>
+
+                <div class="tax-table-group">
+                    <h3>State Tax</h3>
+                    <div class="input-group">
+                        <label for="state-tax-rate">State Tax Rate %
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Flat state income tax rate applied to taxable income</span>
+                            </span>
+                        </label>
+                        <div class="percent-input-wrapper">
+                            <input type="text" inputmode="decimal" class="percent-input" id="state-tax-rate"
+                                name="state-tax-rate" value="5" placeholder="e.g., 5" />
+                            <span class="percent-symbol">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tax-table-group">
+                    <h3>Standard Deduction</h3>
+                    <div class="top-input-grid horizontal">
+                        <div class="input-group">
+                            <label for="standard-deduction-single">Single</label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="standard-deduction-single" name="standard-deduction-single" value="16100"
+                                    placeholder="e.g., 14,600" />
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="standard-deduction-mfj">Married Filing Jointly</label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="standard-deduction-mfj" name="standard-deduction-mfj" value="32200"
+                                    placeholder="e.g., 29,200" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="top-input-grid horizontal">
+                        <div class="input-group">
+                            <label for="senior-deduction-single">Additional 65+ (Single)
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Additional standard deduction for a single filer age 65
+                                        or older</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input"
+                                    id="senior-deduction-single" name="senior-deduction-single" value="2050"
+                                    placeholder="e.g., 1,950" />
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="senior-deduction-mfj">Additional 65+ (Married, per person)
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Additional standard deduction, per spouse age 65 or
+                                        older, for married filing jointly</span>
+                                </span>
+                            </label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="text" inputmode="decimal" class="currency-input" id="senior-deduction-mfj"
+                                    name="senior-deduction-mfj" value="1650" placeholder="e.g., 1,550" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tax-table-group">
+                    <h3>Federal Income Tax Brackets
+                        <span class="tooltip">
+                            ?
+                            <span class="tooltip-text">7 fixed brackets; both the rate and the income level at which
+                                each begins are editable</span>
+                        </span>
+                    </h3>
+                    <div class="tax-bracket-columns">
+                        <div>
+                            <h4>Single</h4>
+                            <table class="tax-bracket-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rate</th>
+                                        <th>Income Over</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-single-rate-1"
+                                                    name="federal-bracket-single-rate-1" value="10" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-single-income-1"
+                                                    name="federal-bracket-single-income-1" value="0" disabled />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-single-rate-2"
+                                                    name="federal-bracket-single-rate-2" value="12" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-single-income-2"
+                                                    name="federal-bracket-single-income-2" value="12400" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-single-rate-3"
+                                                    name="federal-bracket-single-rate-3" value="22" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-single-income-3"
+                                                    name="federal-bracket-single-income-3" value="50400" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-single-rate-4"
+                                                    name="federal-bracket-single-rate-4" value="24" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-single-income-4"
+                                                    name="federal-bracket-single-income-4" value="105700" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-single-rate-5"
+                                                    name="federal-bracket-single-rate-5" value="32" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-single-income-5"
+                                                    name="federal-bracket-single-income-5" value="201775" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-single-rate-6"
+                                                    name="federal-bracket-single-rate-6" value="35" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-single-income-6"
+                                                    name="federal-bracket-single-income-6" value="256225" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-single-rate-7"
+                                                    name="federal-bracket-single-rate-7" value="37" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-single-income-7"
+                                                    name="federal-bracket-single-income-7" value="640600" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <h4>Married Filing Jointly</h4>
+                            <table class="tax-bracket-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rate</th>
+                                        <th>Income Over</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-mfj-rate-1" name="federal-bracket-mfj-rate-1"
+                                                    value="10" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-mfj-income-1"
+                                                    name="federal-bracket-mfj-income-1" value="0" disabled />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-mfj-rate-2" name="federal-bracket-mfj-rate-2"
+                                                    value="12" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-mfj-income-2"
+                                                    name="federal-bracket-mfj-income-2" value="24800" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-mfj-rate-3" name="federal-bracket-mfj-rate-3"
+                                                    value="22" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-mfj-income-3"
+                                                    name="federal-bracket-mfj-income-3" value="100800" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-mfj-rate-4" name="federal-bracket-mfj-rate-4"
+                                                    value="24" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-mfj-income-4"
+                                                    name="federal-bracket-mfj-income-4" value="211400" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-mfj-rate-5" name="federal-bracket-mfj-rate-5"
+                                                    value="32" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-mfj-income-5"
+                                                    name="federal-bracket-mfj-income-5" value="403550" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-mfj-rate-6" name="federal-bracket-mfj-rate-6"
+                                                    value="35" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-mfj-income-6"
+                                                    name="federal-bracket-mfj-income-6" value="512450" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="percent-input-wrapper">
+                                                <input type="text" inputmode="decimal" class="percent-input"
+                                                    id="federal-bracket-mfj-rate-7" name="federal-bracket-mfj-rate-7"
+                                                    value="37" />
+                                                <span class="percent-symbol">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="federal-bracket-mfj-income-7"
+                                                    name="federal-bracket-mfj-income-7" value="768700" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tax-table-group">
+                    <h3>Long-Term Capital Gains Brackets
+                        <span class="tooltip">
+                            ?
+                            <span class="tooltip-text">The income level at which each capital gains rate begins</span>
+                        </span>
+                    </h3>
+                    <div class="tax-bracket-columns">
+                        <div>
+                            <h4>Single</h4>
+                            <table class="tax-bracket-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rate</th>
+                                        <th>Income Over</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>0%</td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="ltcg-bracket-single-0" name="ltcg-bracket-single-0" value="0"
+                                                    disabled />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>15%</td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="ltcg-bracket-single-15" name="ltcg-bracket-single-15"
+                                                    value="49450" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>20%</td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="ltcg-bracket-single-20" name="ltcg-bracket-single-20"
+                                                    value="545500" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <h4>Married Filing Jointly</h4>
+                            <table class="tax-bracket-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rate</th>
+                                        <th>Income Over</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>0%</td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="ltcg-bracket-mfj-0" name="ltcg-bracket-mfj-0" value="0"
+                                                    disabled />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>15%</td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="ltcg-bracket-mfj-15" name="ltcg-bracket-mfj-15" value="98900" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>20%</td>
+                                        <td>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="ltcg-bracket-mfj-20" name="ltcg-bracket-mfj-20"
+                                                    value="613700" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="button" class="modal-close">Done</button>
+                </div>
+            </dialog>
         </form>
     </div>
 

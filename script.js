@@ -94,3 +94,27 @@ document.getElementById('reset-btn').addEventListener('click', () => {
     document.querySelectorAll('.percent-input:not(#bond-percentage)').forEach(formatPercentInput);
     updateBondPercentage();
 });
+
+// Tax Tables modal: rarely-edited settings tucked behind a native <dialog> instead
+// of cluttering the main form.
+const taxTablesModal = document.getElementById('tax-tables-modal');
+
+document.getElementById('open-tax-tables-btn').addEventListener('click', () => {
+    taxTablesModal.showModal();
+});
+
+document.querySelectorAll('.modal-close').forEach((button) => {
+    button.addEventListener('click', () => taxTablesModal.close());
+});
+
+// Close when clicking the ::backdrop (its click target is the <dialog> itself, not a
+// child), by checking whether the click occurred outside the dialog's content box.
+taxTablesModal.addEventListener('click', (event) => {
+    const rect = taxTablesModal.getBoundingClientRect();
+    const clickedInsideContent =
+        event.clientX >= rect.left && event.clientX <= rect.right &&
+        event.clientY >= rect.top && event.clientY <= rect.bottom;
+    if (!clickedInsideContent) {
+        taxTablesModal.close();
+    }
+});

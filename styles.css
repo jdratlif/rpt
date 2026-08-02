@@ -144,12 +144,6 @@ h1 {
     padding-right: 26px;
 }
 
-.percent-input-wrapper input:disabled {
-    background-color: #eee;
-    color: #888;
-    cursor: not-allowed;
-}
-
 .portfolio-composition {
     margin-bottom: 30px;
 }
@@ -263,4 +257,122 @@ h1 {
 
 .actions button#reset-btn:hover {
     background-color: #cacaca;
+}
+
+.tax-tables-trigger {
+    text-align: right;
+    margin: -15px 0 30px;
+}
+
+.link-button {
+    background: none;
+    border: none;
+    color: #3498db;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 4px 0;
+}
+
+.link-button:hover {
+    color: #2980b9;
+}
+
+dialog#tax-tables-modal {
+    width: min(700px, 90vw);
+    max-height: 85vh;
+    overflow-y: auto;
+    border: none;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+dialog#tax-tables-modal::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #3498db;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #555;
+}
+
+.tax-table-group {
+    margin-bottom: 25px;
+}
+
+.tax-table-group h3 {
+    font-size: 1.1rem;
+    color: #2c3e50;
+    margin-bottom: 12px;
+}
+
+.tax-bracket-columns {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.tax-bracket-columns>div {
+    flex: 1;
+    min-width: 220px;
+}
+
+.tax-bracket-columns h4 {
+    font-size: 0.95rem;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.tax-bracket-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tax-bracket-table th,
+.tax-bracket-table td {
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+}
+
+.tax-bracket-table th {
+    color: #555;
+    font-weight: 600;
+}
+
+.tax-bracket-table .currency-input-wrapper input {
+    padding: 6px 6px 6px 20px;
+    font-size: 0.9rem;
+}
+
+.tax-bracket-table .percent-input-wrapper input {
+    width: 55px;
+    padding: 6px 20px 6px 6px;
+    font-size: 0.9rem;
+}
+
+.tax-table-group .top-input-grid + .top-input-grid {
+    margin-top: 15px;
+}
+
+.currency-input-wrapper input:disabled,
+.percent-input-wrapper input:disabled {
+    background-color: #eee;
+    color: #888;
+    cursor: not-allowed;
 }
