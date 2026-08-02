@@ -494,7 +494,8 @@ h1 {
     color: #2980b9;
 }
 
-dialog#tax-tables-modal {
+dialog#tax-tables-modal,
+dialog#advanced-stock-returns-modal {
     width: min(700px, 90vw);
     max-height: 85vh;
     overflow-y: auto;
@@ -504,7 +505,8 @@ dialog#tax-tables-modal {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
-dialog#tax-tables-modal::backdrop {
+dialog#tax-tables-modal::backdrop,
+dialog#advanced-stock-returns-modal::backdrop {
     background: rgba(0, 0, 0, 0.5);
 }
 
@@ -512,8 +514,8 @@ dialog#tax-tables-modal::backdrop {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
+    margin: 0 -10px 20px;
+    padding: 0 10px 15px;
     border-bottom: 2px solid #3498db;
 }
 
@@ -524,6 +526,7 @@ dialog#tax-tables-modal::backdrop {
     line-height: 1;
     cursor: pointer;
     color: #555;
+    margin-right: -5px;
 }
 
 .tax-table-group {
