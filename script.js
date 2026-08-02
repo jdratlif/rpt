@@ -211,6 +211,19 @@ function growAccount(account, monthlyStockReturn, monthlyBondReturn, months) {
     }
 }
 
+// Deposits an amount into an account's stock/bond sub-balances, in proportion to
+// its current split (50/50 if the account is currently empty), mutating it in
+// place -- the inverse of withdrawFromAccount, used for Roth conversions.
+function depositToAccount(account, amount) {
+    if (amount <= 0) {
+        return;
+    }
+    const balance = account.stock + account.bond;
+    const stockShare = balance > 0 ? account.stock / balance : 0.5;
+    account.stock += amount * stockShare;
+    account.bond += amount * (1 - stockShare);
+}
+
 // Formats a plain number as whole-dollar currency for read-only result display.
 function formatResultCurrency(value) {
     return `$${Math.round(value).toLocaleString()}`;
@@ -498,7 +511,8 @@ function getRmdDivisor(age) {
 // (annuity + Social Security) from the portfolio -- taxable first, then
 // traditional (pre-tax), then Roth last, preserving tax-advantaged growth as
 // long as possible. Then, if the caller supplied a tax gross-up amount (see
-// computeYearRows), withdraws that too, continuing the same waterfall. Everything
+// computeYearRows), withdraws that too, continuing the same waterfall, and
+// finally makes any requested Roth conversion (traditional -> Roth). Everything
 // here runs in nominal dollars; the today's-dollars conversion (like the
 // annuity's) is only applied to the returned display values. Any surplus
 // (guaranteed income exceeding expenses) isn't reinvested -- it's simply left
@@ -547,6 +561,20 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
     rothWithdrawal += grossUpFromRoth;
     const taxGrossUpWithdrawal = grossUpFromTaxable + grossUpFromTraditional + grossUpFromRoth;
 
+    // Roth conversion: pulled from Traditional only (not the shortfall waterfall,
+    // since a conversion is a deliberate account move, not spending). Only the
+    // caller's pre-estimated after-tax amount lands in Roth -- the gap is the
+    // conversion's own tax bill, "paid" by shrinking the deposit rather than a
+    // further withdrawal. If the account runs dry mid-conversion, the deposit is
+    // scaled down proportionally so it never nets out more than was converted.
+    const rothConversionRequested = Math.max(0, context.rothConversionAmount || 0);
+    const rothConversionWithdrawal = withdrawFromAccount(accounts.traditional, rothConversionRequested);
+    const rothConversionDeposit = rothConversionRequested > 0
+        ? (context.rothConversionNetDeposit || 0) * (rothConversionWithdrawal / rothConversionRequested)
+        : 0;
+    depositToAccount(accounts.roth, rothConversionDeposit);
+    traditionalWithdrawal += rothConversionWithdrawal;
+
     // Whatever remains after the withdrawal grows for the rest of the year, so the
     // ending balance reflects a full year of stock/bond returns on the reduced base.
     growAccount(accounts.taxable, context.monthlyStockReturn, context.monthlyBondReturn, 12);
@@ -575,6 +603,9 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
         // Already included in the three withdrawal figures above; broken out here
         // just so it's visible how much of the withdrawal was for taxes vs. spending.
         taxGrossUpWithdrawal: taxGrossUpWithdrawal * deflationFactor,
+        // Net amount that actually landed in Roth -- already included in
+        // traditionalWithdrawal above (the gross conversion) and in rothBalance below.
+        rothConversionDeposit: rothConversionDeposit * deflationFactor,
         totalWithdrawal: (taxableWithdrawal + traditionalWithdrawal + rothWithdrawal) * deflationFactor,
         taxableBalance: taxableBalance * deflationFactor,
         traditionalBalance: traditionalBalance * deflationFactor,
@@ -605,6 +636,7 @@ function renderWithdrawalProjectionTable(rows) {
             <td>${formatResultCurrency(row.traditionalWithdrawal)}</td>
             <td>${formatResultCurrency(row.rothWithdrawal)}</td>
             <td>${formatResultCurrency(row.taxGrossUpWithdrawal)}</td>
+            <td>${formatResultCurrency(row.rothConversionDeposit)}</td>
             <td class="total-cell">${formatResultCurrency(row.totalWithdrawal)}</td>
             <td>${formatResultCurrency(row.taxableBalance)}</td>
             <td>${formatResultCurrency(row.traditionalBalance)}</td>
@@ -1067,6 +1099,13 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
     // reported, not funded by additional withdrawals).
     const grossUpForTaxes = document.getElementById('gross-up-for-taxes').checked;
 
+    // Roth conversion settings: a flat annual traditional-to-Roth conversion made
+    // every year the primary's age falls within [start, end]. Zero amount disables
+    // the feature entirely (same behavior as before it existed).
+    const rothConversionStartAge = parseFloat(document.getElementById('roth-conversion-start-age').value) || 0;
+    const rothConversionEndAge = parseFloat(document.getElementById('roth-conversion-end-age').value) || 0;
+    const rothConversionAmount = parseCurrencyInput(document.getElementById('roth-conversion-amount'));
+
     // A balance difference this small is treated as "no room left" in an account,
     // avoiding floating-point noise from repeatedly picking that account as the
     // gross-up source for a fraction of a cent.
@@ -1109,23 +1148,42 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
             const incomeNominal = annuityNominal + socialSecurityNominal;
             const yearWithdrawalContext = { ...withdrawalContextBase, expensesNominal, incomeNominal };
 
+            // Dry run against a throwaway clone to learn the base (pre-gross-up,
+            // pre-conversion) withdrawal composition and its resulting tax, without
+            // touching the real account balances -- those are only mutated once,
+            // below, by the real (final) withdrawal for the year. Needed regardless
+            // of whether gross-up is on, since the Roth conversion's one-shot
+            // marginal-rate estimate (below) also reads from it.
+            const dryRunAccounts = {
+                taxable: { ...withdrawalAccounts.taxable },
+                traditional: { ...withdrawalAccounts.traditional },
+                roth: { ...withdrawalAccounts.roth },
+            };
+            const baseWithdrawal = calculateWithdrawalYear(year, yearWithdrawalContext, dryRunAccounts);
+            const baseTaxRow = calculateTaxYear(
+                year, buildTaxContext(baseWithdrawal, annuityNominal, socialSecurityNominal)
+            );
+
+            // Roth conversion: same one-shot marginal-rate estimate the gross-up
+            // uses (based on the pre-conversion base tax result), sized against the
+            // full requested conversion rather than a single dollar -- an accepted
+            // approximation, same as the gross-up's.
+            const primaryAge = retirementAge + (year - 1);
+            const rothConversionForYear =
+                (rothConversionAmount > 0 && primaryAge >= rothConversionStartAge && primaryAge <= rothConversionEndAge)
+                    ? rothConversionAmount
+                    : 0;
+            let rothConversionNetDeposit = 0;
+            if (rothConversionForYear > 0) {
+                const conversionMarginalRate = Math.min(0.9, estimateWithdrawalMarginalRate(
+                    'traditional', baseTaxRow, taxContextBase.stateTaxRate, taxContextBase.taxableBasisFraction
+                ));
+                rothConversionNetDeposit = rothConversionForYear * (1 - conversionMarginalRate);
+            }
+
             let additionalWithdrawalForTaxes = 0;
 
             if (grossUpForTaxes) {
-                // Dry run against a throwaway clone to learn the base (pre-gross-up)
-                // withdrawal composition and its resulting tax, without touching the
-                // real account balances -- those are only mutated once, below, by the
-                // real (final) withdrawal for the year.
-                const dryRunAccounts = {
-                    taxable: { ...withdrawalAccounts.taxable },
-                    traditional: { ...withdrawalAccounts.traditional },
-                    roth: { ...withdrawalAccounts.roth },
-                };
-                const baseWithdrawal = calculateWithdrawalYear(year, yearWithdrawalContext, dryRunAccounts);
-                const baseTaxRow = calculateTaxYear(
-                    year, buildTaxContext(baseWithdrawal, annuityNominal, socialSecurityNominal)
-                );
-
                 // "Surplus" cash not needed for spending -- guaranteed income beyond
                 // expenses, or an RMD forced above the shortfall -- is assumed to go
                 // toward taxes first, before any extra withdrawal is needed.
@@ -1161,7 +1219,14 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
             }
 
             const withdrawalRow = calculateWithdrawalYear(
-                year, { ...yearWithdrawalContext, additionalWithdrawalForTaxes }, withdrawalAccounts
+                year,
+                {
+                    ...yearWithdrawalContext,
+                    additionalWithdrawalForTaxes,
+                    rothConversionAmount: rothConversionForYear,
+                    rothConversionNetDeposit,
+                },
+                withdrawalAccounts
             );
             withdrawalRows.push(withdrawalRow);
             // Recomputed against the final (possibly grossed-up) withdrawal amounts so
