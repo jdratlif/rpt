@@ -43,8 +43,8 @@
                             <label for="widow-age">Widow Age
                                 <span class="tooltip">
                                     ?
-                                    <span class="tooltip-text">Age at which spouse becomes a widow. Set equal to primary
-                                        current age if single.</span>
+                                    <span class="tooltip-text">Age at which spouse becomes a widow. Set to 0 if
+                                        single.</span>
                                 </span>
                             </label>
                             <input type="number" id="widow-age" name="widow-age" min="0" max="120" value="78"
@@ -124,11 +124,77 @@
                 </div>
             </section>
 
+            <!-- Rates Section -->
+            <section class="top-section" id="rates-section">
+                <h2 class="section-title">Rates</h2>
+                <div class="top-input-grid">
+                    <div class="top-person-column">
+                        <h3 class="person-title">Inflation</h3>
+                        <div class="input-group">
+                            <label for="inflation-percentage">Inflation %
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Expected annual inflation rate</span>
+                                </span>
+                            </label>
+                            <div class="percent-input-wrapper">
+                                <input type="text" inputmode="decimal" class="percent-input" id="inflation-percentage"
+                                    name="inflation-percentage" value="3" placeholder="e.g., 3" />
+                                <span class="percent-symbol">%</span>
+                            </div>
+                        </div>
+                        <div class="input-group checkbox-group">
+                            <label for="todays-dollars">
+                                <input type="checkbox" id="todays-dollars" name="todays-dollars" checked />
+                                Today's Dollars
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Show projected values adjusted for inflation, in
+                                        today's purchasing power.</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="top-person-column">
+                        <h3 class="person-title">Portfolio Returns</h3>
+                        <div class="input-group">
+                            <label for="stock-return-percentage">Stock %
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Expected annual rate of return for equity
+                                        investments</span>
+                                </span>
+                            </label>
+                            <div class="percent-input-wrapper">
+                                <input type="text" inputmode="decimal" class="percent-input"
+                                    id="stock-return-percentage" name="stock-return-percentage" value="7"
+                                    placeholder="e.g., 7" />
+                                <span class="percent-symbol">%</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="bond-return-percentage">Bond %
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Expected annual rate of return for fixed income
+                                        investments</span>
+                                </span>
+                            </label>
+                            <div class="percent-input-wrapper">
+                                <input type="text" inputmode="decimal" class="percent-input" id="bond-return-percentage"
+                                    name="bond-return-percentage" value="3" placeholder="e.g., 3" />
+                                <span class="percent-symbol">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Portfolio Section -->
             <section class="top-section" id="portfolio-section">
                 <h2 class="section-title">Portfolio</h2>
                 <div class="top-person-column portfolio-composition">
-                    <h3 class="person-title">Composition and Returns</h3>
+                    <h3 class="person-title">Composition</h3>
                     <div class="top-input-grid horizontal">
                         <div class="input-group">
                             <label for="stock-percentage">Stock %
@@ -154,35 +220,6 @@
                             <div class="percent-input-wrapper">
                                 <input type="text" inputmode="decimal" class="percent-input" id="bond-percentage"
                                     name="bond-percentage" value="30" placeholder="e.g., 30" disabled />
-                                <span class="percent-symbol">%</span>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="stock-return-percentage">Stock Return %
-                                <span class="tooltip">
-                                    ?
-                                    <span class="tooltip-text">Expected annual rate of return for stock
-                                        investments</span>
-                                </span>
-                            </label>
-                            <div class="percent-input-wrapper">
-                                <input type="text" inputmode="decimal" class="percent-input"
-                                    id="stock-return-percentage" name="stock-return-percentage" value="7"
-                                    placeholder="e.g., 7" />
-                                <span class="percent-symbol">%</span>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="bond-return-percentage">Bond Return %
-                                <span class="tooltip">
-                                    ?
-                                    <span class="tooltip-text">Expected annual rate of return for bond
-                                        investments</span>
-                                </span>
-                            </label>
-                            <div class="percent-input-wrapper">
-                                <input type="text" inputmode="decimal" class="percent-input" id="bond-return-percentage"
-                                    name="bond-return-percentage" value="3" placeholder="e.g., 3" />
                                 <span class="percent-symbol">%</span>
                             </div>
                         </div>
@@ -286,6 +323,47 @@
                 </div>
             </section>
 
+            <!-- Roth Conversions Section -->
+            <section class="top-section" id="roth-conversions-section">
+                <h2 class="section-title">Roth Conversions</h2>
+                <div class="top-input-grid horizontal">
+                    <div class="input-group">
+                        <label for="roth-conversion-start-age">Start Age
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Age at which annual Roth conversions begin</span>
+                            </span>
+                        </label>
+                        <input type="number" id="roth-conversion-start-age" name="roth-conversion-start-age" min="1"
+                            max="120" value="60" placeholder="e.g., 60" />
+                    </div>
+                    <div class="input-group">
+                        <label for="roth-conversion-end-age">End Age
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Age at which annual Roth conversions end</span>
+                            </span>
+                        </label>
+                        <input type="number" id="roth-conversion-end-age" name="roth-conversion-end-age" min="1"
+                            max="120" value="75" placeholder="e.g., 75" />
+                    </div>
+                    <div class="input-group">
+                        <label for="roth-conversion-amount">Amount
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Annual amount converted from traditional to Roth accounts.
+                                    Set to 0 for no conversions.</span>
+                            </span>
+                        </label>
+                        <div class="currency-input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input type="text" inputmode="decimal" class="currency-input" id="roth-conversion-amount"
+                                name="roth-conversion-amount" value="0" placeholder="e.g., 0" />
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Income Section -->
             <section class="top-section" id="income-section">
                 <h2 class="section-title">Income</h2>
@@ -358,47 +436,6 @@
                                     id="annuity-secondary-income" name="annuity-secondary-income" value="0"
                                     placeholder="e.g., 0" />
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Roth Conversions Section -->
-            <section class="top-section" id="roth-conversions-section">
-                <h2 class="section-title">Roth Conversions</h2>
-                <div class="top-input-grid horizontal">
-                    <div class="input-group">
-                        <label for="roth-conversion-start-age">Start Age
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Age at which annual Roth conversions begin</span>
-                            </span>
-                        </label>
-                        <input type="number" id="roth-conversion-start-age" name="roth-conversion-start-age" min="1"
-                            max="120" value="60" placeholder="e.g., 60" />
-                    </div>
-                    <div class="input-group">
-                        <label for="roth-conversion-end-age">End Age
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Age at which annual Roth conversions end</span>
-                            </span>
-                        </label>
-                        <input type="number" id="roth-conversion-end-age" name="roth-conversion-end-age" min="1"
-                            max="120" value="75" placeholder="e.g., 75" />
-                    </div>
-                    <div class="input-group">
-                        <label for="roth-conversion-amount">Amount
-                            <span class="tooltip">
-                                ?
-                                <span class="tooltip-text">Annual amount converted from traditional to Roth accounts.
-                                    Set to 0 for no conversions.</span>
-                            </span>
-                        </label>
-                        <div class="currency-input-wrapper">
-                            <span class="currency-symbol">$</span>
-                            <input type="text" inputmode="decimal" class="currency-input" id="roth-conversion-amount"
-                                name="roth-conversion-amount" value="0" placeholder="e.g., 0" />
                         </div>
                     </div>
                 </div>

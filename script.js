@@ -84,7 +84,11 @@ updateBondPercentage();
 // reset, which would reformat stale values instead of the restored defaults.
 document.getElementById('reset-btn').addEventListener('click', () => {
     document.querySelectorAll('#retirement-form input').forEach((input) => {
-        input.value = input.defaultValue;
+        if (input.type === 'checkbox') {
+            input.checked = input.defaultChecked;
+        } else {
+            input.value = input.defaultValue;
+        }
     });
     document.querySelectorAll('.currency-input').forEach(formatCurrencyInput);
     document.querySelectorAll('.percent-input:not(#bond-percentage)').forEach(formatPercentInput);

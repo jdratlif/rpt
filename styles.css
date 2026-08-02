@@ -154,6 +154,21 @@ h1 {
     margin-bottom: 30px;
 }
 
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    padding: 0;
+    accent-color: #3498db;
+    cursor: pointer;
+}
+
 .tooltip {
     position: relative;
     display: inline-block;
