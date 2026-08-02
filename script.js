@@ -118,3 +118,78 @@ taxTablesModal.addEventListener('click', (event) => {
         taxTablesModal.close();
     }
 });
+
+// Grows a starting balance to retirement using monthly-compounded stock/bond
+// returns, adding a monthly contribution (split across stock/bond in the same
+// proportion as the balance) each month. Monthly compounding is used instead of
+// a single annual lump-sum growth step because contributions actually arrive
+// throughout the year and should start compounding as soon as they land.
+function projectAccountBalance(
+    startingBalance, monthlyContribution, stockFraction, bondFraction,
+    monthlyStockReturn, monthlyBondReturn, months
+) {
+    let stockValue = startingBalance * stockFraction;
+    let bondValue = startingBalance * bondFraction;
+    const contributionStock = monthlyContribution * stockFraction;
+    const contributionBond = monthlyContribution * bondFraction;
+
+    for (let month = 0; month < months; month++) {
+        stockValue = stockValue * (1 + monthlyStockReturn) + contributionStock;
+        bondValue = bondValue * (1 + monthlyBondReturn) + contributionBond;
+    }
+
+    return stockValue + bondValue;
+}
+
+// Formats a plain number as whole-dollar currency for read-only result display.
+function formatResultCurrency(value) {
+    return `$${Math.round(value).toLocaleString()}`;
+}
+
+document.getElementById('calculate-btn').addEventListener('click', () => {
+    const retirementAge = parseFloat(document.getElementById('retirement-age').value) || 0;
+    const primaryCurrentAge = parseFloat(document.getElementById('primary-current-age').value) || 0;
+    const yearsToRetirement = Math.max(0, retirementAge - primaryCurrentAge);
+    const monthsToRetirement = yearsToRetirement * 12;
+
+    const stockFraction = parsePercentInput(document.getElementById('stock-percentage')) / 100;
+    const bondFraction = 1 - stockFraction;
+    const monthlyStockReturn = parsePercentInput(document.getElementById('stock-return-percentage')) / 100 / 12;
+    const monthlyBondReturn = parsePercentInput(document.getElementById('bond-return-percentage')) / 100 / 12;
+
+    const traditionalBalance = projectAccountBalance(
+        parseCurrencyInput(document.getElementById('traditional-retirement-balance')),
+        parseCurrencyInput(document.getElementById('traditional-monthly-contribution')),
+        stockFraction, bondFraction, monthlyStockReturn, monthlyBondReturn, monthsToRetirement
+    );
+    const rothBalance = projectAccountBalance(
+        parseCurrencyInput(document.getElementById('roth-retirement-balance')),
+        parseCurrencyInput(document.getElementById('roth-monthly-contribution')),
+        stockFraction, bondFraction, monthlyStockReturn, monthlyBondReturn, monthsToRetirement
+    );
+    const taxableBalance = projectAccountBalance(
+        parseCurrencyInput(document.getElementById('taxable-balance')),
+        parseCurrencyInput(document.getElementById('taxable-monthly-contribution')),
+        stockFraction, bondFraction, monthlyStockReturn, monthlyBondReturn, monthsToRetirement
+    );
+
+    // "Today's Dollars" discounts the nominal future balances back to present-day
+    // purchasing power using the inflation rate over the years until retirement.
+    let deflationFactor = 1;
+    if (document.getElementById('todays-dollars').checked) {
+        const inflationRate = parsePercentInput(document.getElementById('inflation-percentage')) / 100;
+        deflationFactor = 1 / Math.pow(1 + inflationRate, yearsToRetirement);
+    }
+
+    const traditionalResult = traditionalBalance * deflationFactor;
+    const rothResult = rothBalance * deflationFactor;
+    const taxableResult = taxableBalance * deflationFactor;
+
+    document.getElementById('result-traditional-balance').textContent = formatResultCurrency(traditionalResult);
+    document.getElementById('result-roth-balance').textContent = formatResultCurrency(rothResult);
+    document.getElementById('result-taxable-balance').textContent = formatResultCurrency(taxableResult);
+    document.getElementById('result-total-balance').textContent =
+        formatResultCurrency(traditionalResult + rothResult + taxableResult);
+
+    document.getElementById('results-section').hidden = false;
+});

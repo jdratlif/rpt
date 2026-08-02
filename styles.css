@@ -264,6 +264,17 @@ h1 {
     margin: -15px 0 30px;
 }
 
+.result-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    padding: 8px 0;
+}
+
+#result-total-balance {
+    color: #3498db;
+}
+
 .link-button {
     background: none;
     border: none;
