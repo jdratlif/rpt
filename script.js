@@ -201,15 +201,29 @@ function calculateExpenseYear(yearIndex, context) {
         primaryMedicare = 0;
     }
 
-    const rawTotal = common + primaryPreMedicare + spousePreMedicare + primaryMedicare + spouseMedicare +
-        temporaryExpenses.reduce((sum, value) => sum + value, 0);
-
     const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
     // nominalFactor is always applied (unlike inflationFactor below) since the
     // withdrawal simulation needs true nominal dollars regardless of display mode.
     const nominalFactor = Math.pow(1 + context.inflationRate, yearsFromToday);
     const inflationFactor = context.showTodaysDollars ? 1 : nominalFactor;
-    const total = rawTotal * inflationFactor;
+
+    // IRMAA (based on projected income from 2 years prior -- see getIrmaaMonthlySurcharge)
+    // arrives already expressed in this year's nominal dollars, unlike the inputs
+    // above (entered in today's dollars and inflated forward via inflationFactor),
+    // so it needs the inverse -- deflated for today's-dollars display, left alone
+    // for nominal -- instead of being inflated a second time.
+    const irmaaMonthlySurcharge = context.irmaaMonthlySurchargeByYear[yearIndex - 1] ?? 0;
+    let primaryIrmaaNominal = primaryAge >= 65 ? irmaaMonthlySurcharge * 12 : 0;
+    const spouseIrmaaNominal = spouseAge >= 65 ? irmaaMonthlySurcharge * 12 : 0;
+    if (context.widowAge > 0 && spouseAge >= context.widowAge) {
+        primaryIrmaaNominal = 0;
+    }
+    const irmaaSurchargeNominal = primaryIrmaaNominal + spouseIrmaaNominal;
+    const deflationFactor = context.showTodaysDollars ? 1 / nominalFactor : 1;
+
+    const rawTotal = common + primaryPreMedicare + spousePreMedicare + primaryMedicare + spouseMedicare +
+        temporaryExpenses.reduce((sum, value) => sum + value, 0);
+    const total = rawTotal * inflationFactor + irmaaSurchargeNominal * deflationFactor;
 
     return {
         year: yearIndex,
@@ -218,11 +232,12 @@ function calculateExpenseYear(yearIndex, context) {
         common: common * inflationFactor,
         primaryPreMedicare: primaryPreMedicare * inflationFactor,
         spousePreMedicare: spousePreMedicare * inflationFactor,
-        primaryMedicare: primaryMedicare * inflationFactor,
-        spouseMedicare: spouseMedicare * inflationFactor,
+        primaryMedicare: primaryMedicare * inflationFactor + primaryIrmaaNominal * deflationFactor,
+        spouseMedicare: spouseMedicare * inflationFactor + spouseIrmaaNominal * deflationFactor,
+        irmaaSurcharge: irmaaSurchargeNominal * deflationFactor,
         temporaryExpenses: temporaryExpenses.map((value) => value * inflationFactor),
         total,
-        totalNominal: rawTotal * nominalFactor,
+        totalNominal: rawTotal * nominalFactor + irmaaSurchargeNominal,
     };
 }
 
@@ -241,6 +256,7 @@ function renderExpenseProjectionTable(rows) {
             <td>${formatResultCurrency(row.spousePreMedicare)}</td>
             <td>${formatResultCurrency(row.primaryMedicare)}</td>
             <td>${formatResultCurrency(row.spouseMedicare)}</td>
+            <td>${formatResultCurrency(row.irmaaSurcharge)}</td>
             <td>${formatResultCurrency(row.temporaryExpenses[0])}</td>
             <td>${formatResultCurrency(row.temporaryExpenses[1])}</td>
             <td>${formatResultCurrency(row.temporaryExpenses[2])}</td>
@@ -569,6 +585,45 @@ function calculateTaxableSocialSecurity(otherIncome, ssBenefit, filingStatus) {
     return Math.min(ssBenefit * 0.85, taxableUpToLowerTier + (provisionalIncome - upper) * 0.85);
 }
 
+// Net Investment Income Tax (IRC 1411): 3.8% of the lesser of net investment
+// income or the excess of MAGI over the threshold. These thresholds are fixed by
+// statute and have never been inflation-indexed, unlike the income tax brackets.
+const NIIT_RATE = 0.038;
+const NIIT_MAGI_THRESHOLDS = { single: 200000, mfj: 250000 };
+
+// 2026 Medicare Part B IRMAA tiers (ssa.gov): the surcharge added on top of the
+// base Part B premium once MAGI exceeds each threshold. The surcharge dollar
+// amounts are the same for both filing statuses; only the MAGI breakpoints differ.
+// Part D also carries an IRMAA surcharge, but it's not modeled since this app
+// doesn't have a base Part D premium input (it varies too widely by plan).
+const IRMAA_PART_B_TIERS = [
+    { singleMagiOver: 0, mfjMagiOver: 0, surcharge: 0 },
+    { singleMagiOver: 109000, mfjMagiOver: 218000, surcharge: 81.20 },
+    { singleMagiOver: 137000, mfjMagiOver: 274000, surcharge: 202.90 },
+    { singleMagiOver: 171000, mfjMagiOver: 342000, surcharge: 324.60 },
+    { singleMagiOver: 205000, mfjMagiOver: 410000, surcharge: 446.30 },
+    { singleMagiOver: 500000, mfjMagiOver: 750000, surcharge: 487.00 },
+];
+
+// IRMAA is assessed using MAGI from 2 tax years prior, which conveniently avoids
+// any circularity with the current year's own withdrawals/expenses (unlike, say,
+// grossing up a withdrawal to cover its own resulting tax bill would).
+const IRMAA_LOOKBACK_YEARS = 2;
+
+// Thresholds and surcharge dollar amounts are inflated to the premium year's
+// nominal dollars (nominalFactor), the same convention used for tax brackets;
+// magi is assumed already expressed in that same year's nominal terms.
+function getIrmaaMonthlySurcharge(magi, filingStatus, nominalFactor) {
+    let surcharge = 0;
+    for (const tier of IRMAA_PART_B_TIERS) {
+        const threshold = (filingStatus === 'mfj' ? tier.mfjMagiOver : tier.singleMagiOver) * nominalFactor;
+        if (magi > threshold) {
+            surcharge = tier.surcharge * nominalFactor;
+        }
+    }
+    return surcharge;
+}
+
 // Calculates one projection year's federal and state tax liability. Traditional
 // withdrawals and annuity income are ordinary income; the taxable (non-basis)
 // portion of taxable-account withdrawals is long-term capital gains; Roth
@@ -619,8 +674,13 @@ function calculateTaxYear(yearIndex, context) {
     const totalTaxable = Math.max(0, ordinaryIncome + ltcgIncome - standardDeduction);
     const ltcgTaxable = totalTaxable - ordinaryTaxable;
 
-    const federalTax = calculateProgressiveTax(ordinaryTaxable, federalBrackets) +
+    const federalIncomeTax = calculateProgressiveTax(ordinaryTaxable, federalBrackets) +
         calculateStackedLtcgTax(ordinaryTaxable, ltcgTaxable, ltcgBrackets);
+
+    // NIIT applies to gross income (MAGI), not the post-deduction taxable amount.
+    const magiNominal = ordinaryIncome + ltcgIncome;
+    const netInvestmentIncome = ltcgIncome;
+    const niit = NIIT_RATE * Math.min(netInvestmentIncome, Math.max(0, magiNominal - NIIT_MAGI_THRESHOLDS[filingStatus]));
 
     // Flat-rate state tax: no preferential capital gains rate and no state standard
     // deduction are modeled, since the tax tables dialog only exposes a flat rate.
@@ -628,7 +688,7 @@ function calculateTaxYear(yearIndex, context) {
         (context.stateTaxesSocialSecurity ? taxableSocialSecurity : 0);
     const stateTax = stateTaxableIncome * context.stateTaxRate;
 
-    const totalTax = federalTax + stateTax;
+    const totalTax = federalIncomeTax + niit + stateTax;
     const deflationFactor = context.showTodaysDollars ? 1 / nominalFactor : 1;
 
     return {
@@ -636,11 +696,16 @@ function calculateTaxYear(yearIndex, context) {
         primaryAge,
         spouseAge,
         filingStatus: filingStatus === 'mfj' ? 'MFJ' : 'Single',
+        // Raw (lowercase) values, plus the nominal MAGI, feed the IRMAA lookback
+        // 2 years later -- keep these nominal/unconverted regardless of display mode.
+        filingStatusRaw: filingStatus,
+        magiNominal,
         ordinaryIncome: ordinaryIncome * deflationFactor,
         ltcgIncome: ltcgIncome * deflationFactor,
         taxableSocialSecurity: taxableSocialSecurity * deflationFactor,
         standardDeduction: standardDeduction * deflationFactor,
-        federalTax: federalTax * deflationFactor,
+        federalIncomeTax: federalIncomeTax * deflationFactor,
+        niit: niit * deflationFactor,
         stateTax: stateTax * deflationFactor,
         totalTax: totalTax * deflationFactor,
     };
@@ -661,7 +726,8 @@ function renderTaxProjectionTable(rows) {
             <td>${formatResultCurrency(row.ltcgIncome)}</td>
             <td>${formatResultCurrency(row.taxableSocialSecurity)}</td>
             <td>${formatResultCurrency(row.standardDeduction)}</td>
-            <td>${formatResultCurrency(row.federalTax)}</td>
+            <td>${formatResultCurrency(row.federalIncomeTax)}</td>
+            <td>${formatResultCurrency(row.niit)}</td>
             <td>${formatResultCurrency(row.stateTax)}</td>
             <td class="total-cell">${formatResultCurrency(row.totalTax)}</td>
         `;
@@ -742,13 +808,6 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         })),
     };
 
-    const expenseRows = [];
-    for (let year = 1; year <= projectionYears; year++) {
-        expenseRows.push(calculateExpenseYear(year, expenseContext));
-    }
-
-    renderExpenseProjectionTable(expenseRows);
-
     const annuityContext = {
         retirementAge,
         yearsToRetirement,
@@ -797,7 +856,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
     // Start from the actual retirement-age stock/bond split (which may have drifted
     // from stockFraction/bondFraction) rather than the plain traditional/roth/taxable
     // totals, so withdrawals and post-withdrawal growth apply to the real mix.
-    const withdrawalAccounts = {
+    const startingAccounts = {
         taxable: { stock: taxableAccount.stock, bond: taxableAccount.bond },
         traditional: { stock: traditionalAccount.stock, bond: traditionalAccount.bond },
         roth: { stock: rothAccount.stock, bond: rothAccount.bond },
@@ -812,16 +871,6 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         monthlyStockReturn,
         monthlyBondReturn,
     };
-
-    const withdrawalRows = [];
-    for (let year = 1; year <= projectionYears; year++) {
-        const expensesNominal = expenseRows[year - 1].totalNominal;
-        const incomeNominal = annuityRows[year - 1].totalNominal + socialSecurityRows[year - 1].totalNominal;
-        const yearContext = { ...withdrawalContextBase, expensesNominal, incomeNominal };
-        withdrawalRows.push(calculateWithdrawalYear(year, yearContext, withdrawalAccounts));
-    }
-
-    renderWithdrawalProjectionTable(withdrawalRows);
 
     // Tax table settings are read once here rather than per-year, since they don't
     // change across the projection (only the bracket/deduction dollar amounts get
@@ -854,17 +903,69 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         stateTaxesSocialSecurity: document.getElementById('state-taxes-social-security').checked,
     };
 
-    const taxRows = [];
-    for (let year = 1; year <= projectionYears; year++) {
-        const yearContext = {
-            ...taxContextBase,
-            traditionalWithdrawalNominal: withdrawalRows[year - 1].traditionalWithdrawalNominal,
-            taxableWithdrawalNominal: withdrawalRows[year - 1].taxableWithdrawalNominal,
-            annuityNominal: annuityRows[year - 1].totalNominal,
-            socialSecurityNominal: socialSecurityRows[year - 1].totalNominal,
+    // Computes a full expense -> withdrawal -> tax pass for a given year-by-year set
+    // of IRMAA Medicare surcharges. Run twice: first with no IRMAA (just to learn
+    // each year's income for the lookback below), then again with the real
+    // surcharges applied, so the rendered results reflect them.
+    function computeYearRows(irmaaMonthlySurchargeByYear) {
+        const yearExpenseContext = { ...expenseContext, irmaaMonthlySurchargeByYear };
+        const expenseRows = [];
+        for (let year = 1; year <= projectionYears; year++) {
+            expenseRows.push(calculateExpenseYear(year, yearExpenseContext));
+        }
+
+        // Clone starting balances so this pass's simulated withdrawals don't leak into
+        // the other pass (withdrawFromAccount/growAccount mutate their account in place).
+        const withdrawalAccounts = {
+            taxable: { ...startingAccounts.taxable },
+            traditional: { ...startingAccounts.traditional },
+            roth: { ...startingAccounts.roth },
         };
-        taxRows.push(calculateTaxYear(year, yearContext));
+
+        const withdrawalRows = [];
+        for (let year = 1; year <= projectionYears; year++) {
+            const expensesNominal = expenseRows[year - 1].totalNominal;
+            const incomeNominal = annuityRows[year - 1].totalNominal + socialSecurityRows[year - 1].totalNominal;
+            const yearContext = { ...withdrawalContextBase, expensesNominal, incomeNominal };
+            withdrawalRows.push(calculateWithdrawalYear(year, yearContext, withdrawalAccounts));
+        }
+
+        const taxRows = [];
+        for (let year = 1; year <= projectionYears; year++) {
+            const yearContext = {
+                ...taxContextBase,
+                traditionalWithdrawalNominal: withdrawalRows[year - 1].traditionalWithdrawalNominal,
+                taxableWithdrawalNominal: withdrawalRows[year - 1].taxableWithdrawalNominal,
+                annuityNominal: annuityRows[year - 1].totalNominal,
+                socialSecurityNominal: socialSecurityRows[year - 1].totalNominal,
+            };
+            taxRows.push(calculateTaxYear(year, yearContext));
+        }
+
+        return { expenseRows, withdrawalRows, taxRows };
     }
 
-    renderTaxProjectionTable(taxRows);
+    const noIrmaaSurcharges = new Array(projectionYears).fill(0);
+    const incomePass = computeYearRows(noIrmaaSurcharges);
+
+    // IRMAA looks back 2 tax years, which conveniently sidesteps the circularity of a
+    // year's own withdrawals affecting its own Medicare premium; the first two
+    // projection years assume no surcharge since that lookback income would fall
+    // before this projection starts (during working years, which aren't modeled).
+    const irmaaMonthlySurchargeByYear = incomePass.taxRows.map((row, index) => {
+        const lookbackIndex = index - IRMAA_LOOKBACK_YEARS;
+        if (lookbackIndex < 0) {
+            return 0;
+        }
+        const lookbackRow = incomePass.taxRows[lookbackIndex];
+        const yearsFromToday = yearsToRetirement + index;
+        const nominalFactor = Math.pow(1 + expenseContext.inflationRate, yearsFromToday);
+        return getIrmaaMonthlySurcharge(lookbackRow.magiNominal, lookbackRow.filingStatusRaw, nominalFactor);
+    });
+
+    const finalPass = computeYearRows(irmaaMonthlySurchargeByYear);
+
+    renderExpenseProjectionTable(finalPass.expenseRows);
+    renderWithdrawalProjectionTable(finalPass.withdrawalRows);
+    renderTaxProjectionTable(finalPass.taxRows);
 });
