@@ -213,6 +213,51 @@ function renderExpenseProjectionTable(rows) {
     document.getElementById('expense-projection-section').hidden = false;
 }
 
+// Annuity payments are fixed nominal amounts once they start (no inflation raises).
+// So in nominal mode the payment stays flat, but in "today's dollars" mode its
+// purchasing power shrinks over time, so we deflate it instead of inflating it.
+function calculateAnnuityYear(yearIndex, context) {
+    const primaryAge = context.retirementAge + (yearIndex - 1);
+    const spouseAge = context.spouseAgeAtRetirement + (yearIndex - 1);
+
+    const primaryAnnuity = primaryAge >= context.primaryAnnuityAge ? context.primaryAnnuityIncome * 12 : 0;
+    const spouseAnnuity = spouseAge >= context.spouseAnnuityAge ? context.spouseAnnuityIncome * 12 : 0;
+
+    const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
+    const deflationFactor = context.showTodaysDollars
+        ? 1 / Math.pow(1 + context.inflationRate, yearsFromToday)
+        : 1;
+
+    return {
+        year: yearIndex,
+        primaryAge,
+        spouseAge,
+        primaryAnnuity: primaryAnnuity * deflationFactor,
+        spouseAnnuity: spouseAnnuity * deflationFactor,
+        total: (primaryAnnuity + spouseAnnuity) * deflationFactor,
+    };
+}
+
+function renderAnnuityProjectionTable(rows) {
+    const tbody = document.getElementById('annuity-projection-tbody');
+    tbody.innerHTML = '';
+
+    rows.forEach((row) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${row.year}</td>
+            <td>${row.primaryAge}</td>
+            <td>${row.spouseAge}</td>
+            <td>${formatResultCurrency(row.primaryAnnuity)}</td>
+            <td>${formatResultCurrency(row.spouseAnnuity)}</td>
+            <td class="total-cell">${formatResultCurrency(row.total)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('annuity-projection-section').hidden = false;
+}
+
 document.getElementById('calculate-btn').addEventListener('click', () => {
     const retirementAge = parseFloat(document.getElementById('retirement-age').value) || 0;
     const primaryCurrentAge = parseFloat(document.getElementById('primary-current-age').value) || 0;
@@ -286,4 +331,23 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
     }
 
     renderExpenseProjectionTable(expenseRows);
+
+    const annuityContext = {
+        retirementAge,
+        yearsToRetirement,
+        spouseAgeAtRetirement: expenseContext.spouseAgeAtRetirement,
+        showTodaysDollars: expenseContext.showTodaysDollars,
+        inflationRate: expenseContext.inflationRate,
+        primaryAnnuityAge: parseFloat(document.getElementById('primary-annuity-age').value) || 0,
+        spouseAnnuityAge: parseFloat(document.getElementById('spouse-annuity-age').value) || 0,
+        primaryAnnuityIncome: parseCurrencyInput(document.getElementById('annuity-primary-income')),
+        spouseAnnuityIncome: parseCurrencyInput(document.getElementById('annuity-secondary-income')),
+    };
+
+    const annuityRows = [];
+    for (let year = 1; year <= projectionYears; year++) {
+        annuityRows.push(calculateAnnuityYear(year, annuityContext));
+    }
+
+    renderAnnuityProjectionTable(annuityRows);
 });
