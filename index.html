@@ -789,6 +789,31 @@
                 </div>
             </section>
 
+            <!-- Tax Projection Results -->
+            <section class="top-section" id="tax-projection-section" hidden>
+                <h2 class="section-title">Tax Projection</h2>
+                <div class="table-scroll">
+                    <table class="projection-table" id="tax-projection-table">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Primary Age</th>
+                                <th>Spouse Age</th>
+                                <th>Filing Status</th>
+                                <th>Ordinary Income</th>
+                                <th>Capital Gains Income</th>
+                                <th>Taxable SS</th>
+                                <th>Standard Deduction</th>
+                                <th>Federal Tax</th>
+                                <th>State Tax</th>
+                                <th>Total Tax</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tax-projection-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
             <!-- Tax Tables Modal -->
             <dialog id="tax-tables-modal">
                 <div class="modal-header">
@@ -810,6 +835,18 @@
                                 name="state-tax-rate" value="5" placeholder="e.g., 5" />
                             <span class="percent-symbol">%</span>
                         </div>
+                    </div>
+                    <div class="input-group checkbox-group">
+                        <label for="state-taxes-social-security">
+                            <input type="checkbox" id="state-taxes-social-security"
+                                name="state-taxes-social-security" />
+                            State Taxes Social Security Benefits
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">If checked, the same amount of Social Security benefit
+                                    that's federally taxable is also added to state taxable income</span>
+                            </span>
+                        </label>
                     </div>
                 </div>
 

@@ -467,6 +467,9 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
         traditionalBalance: traditionalBalance * deflationFactor,
         rothBalance: rothBalance * deflationFactor,
         totalBalance: (taxableBalance + traditionalBalance + rothBalance) * deflationFactor,
+        // Already nominal -- needed by the tax projection regardless of display mode.
+        taxableWithdrawalNominal: taxableWithdrawal,
+        traditionalWithdrawalNominal: traditionalWithdrawal,
     };
 }
 
@@ -494,6 +497,178 @@ function renderWithdrawalProjectionTable(rows) {
     });
 
     document.getElementById('withdrawal-projection-section').hidden = false;
+}
+
+// Reads a filing status's 7 federal brackets as {rate, incomeOver} pairs.
+function readBracketInputs(idPrefix, suffixes) {
+    return suffixes.map((suffix) => ({
+        rate: parsePercentInput(document.getElementById(`${idPrefix}-rate-${suffix}`)) / 100,
+        incomeOver: parseCurrencyInput(document.getElementById(`${idPrefix}-income-${suffix}`)),
+    }));
+}
+
+// Applies a standard marginal-bracket ladder: each bracket's rate only applies to
+// the slice of income between its own threshold and the next bracket's.
+function calculateProgressiveTax(taxableIncome, brackets) {
+    let tax = 0;
+    for (let i = 0; i < brackets.length; i++) {
+        const lower = brackets[i].incomeOver;
+        if (taxableIncome <= lower) {
+            break;
+        }
+        const upper = i + 1 < brackets.length ? brackets[i + 1].incomeOver : Infinity;
+        tax += (Math.min(taxableIncome, upper) - lower) * brackets[i].rate;
+    }
+    return tax;
+}
+
+// Long-term capital gains stack on top of ordinary taxable income (per the IRS
+// Qualified Dividends and Capital Gain Tax Worksheet): each LTCG bracket's rate
+// applies only to the slice of the combined ordinary+LTCG scale that both (a)
+// falls within that bracket and (b) is above whatever ordinary income already
+// occupies the bottom of the scale.
+function calculateStackedLtcgTax(ordinaryTaxable, ltcgTaxable, brackets) {
+    let tax = 0;
+    const combinedTop = ordinaryTaxable + ltcgTaxable;
+    for (let i = 0; i < brackets.length; i++) {
+        const lower = brackets[i].incomeOver;
+        const upper = i + 1 < brackets.length ? brackets[i + 1].incomeOver : Infinity;
+        const amountInBracket = Math.max(0, Math.min(combinedTop, upper) - Math.max(ordinaryTaxable, lower));
+        tax += amountInBracket * brackets[i].rate;
+    }
+    return tax;
+}
+
+// Social Security taxability thresholds are fixed by statute and have never been
+// inflation-indexed (unlike the income tax brackets), so they're hardcoded here
+// rather than editable in the tax tables dialog.
+const SOCIAL_SECURITY_TAXABILITY_THRESHOLDS = {
+    single: { lower: 25000, upper: 34000 },
+    mfj: { lower: 32000, upper: 44000 },
+};
+
+// Implements the IRS "provisional income" formula: up to 50% of benefits become
+// taxable once combined income (other income + half of SS) passes the lower
+// threshold, and up to 85% once it passes the upper threshold.
+function calculateTaxableSocialSecurity(otherIncome, ssBenefit, filingStatus) {
+    if (ssBenefit <= 0) {
+        return 0;
+    }
+
+    const { lower, upper } = SOCIAL_SECURITY_TAXABILITY_THRESHOLDS[filingStatus];
+    const provisionalIncome = otherIncome + ssBenefit * 0.5;
+
+    if (provisionalIncome <= lower) {
+        return 0;
+    }
+    if (provisionalIncome <= upper) {
+        return Math.min(ssBenefit * 0.5, (provisionalIncome - lower) * 0.5);
+    }
+
+    const taxableUpToLowerTier = Math.min(ssBenefit * 0.5, (upper - lower) * 0.5);
+    return Math.min(ssBenefit * 0.85, taxableUpToLowerTier + (provisionalIncome - upper) * 0.85);
+}
+
+// Calculates one projection year's federal and state tax liability. Traditional
+// withdrawals and annuity income are ordinary income; the taxable (non-basis)
+// portion of taxable-account withdrawals is long-term capital gains; Roth
+// withdrawals are untaxed and don't appear here at all. Filing status switches
+// from MFJ to Single once the primary is presumed deceased (spouse past widow
+// age), mirroring the same widow-age convention used elsewhere in this app.
+function calculateTaxYear(yearIndex, context) {
+    const primaryAge = context.retirementAge + (yearIndex - 1);
+    const spouseAge = context.spouseAgeAtRetirement + (yearIndex - 1);
+
+    const isWidowed = context.widowAge > 0 && spouseAge >= context.widowAge;
+    const filingStatus = isWidowed ? 'single' : 'mfj';
+
+    const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
+    // Bracket thresholds and the standard deduction are inflated each year, the
+    // same way the IRS actually adjusts them, so future tax burdens stay realistic
+    // instead of pushing everyone into the top bracket after enough inflation.
+    const nominalFactor = Math.pow(1 + context.inflationRate, yearsFromToday);
+    const inflateBracket = (bracket) => ({ rate: bracket.rate, incomeOver: bracket.incomeOver * nominalFactor });
+
+    const federalBrackets = (filingStatus === 'mfj' ? context.federalBracketsMfj : context.federalBracketsSingle)
+        .map(inflateBracket);
+    const ltcgBrackets = (filingStatus === 'mfj' ? context.ltcgBracketsMfj : context.ltcgBracketsSingle)
+        .map(inflateBracket);
+
+    let seniorDeduction = 0;
+    if (filingStatus === 'mfj') {
+        seniorDeduction += (primaryAge >= 65 ? context.seniorDeductionMfj : 0) +
+            (spouseAge >= 65 ? context.seniorDeductionMfj : 0);
+    } else if (spouseAge >= 65) {
+        seniorDeduction += context.seniorDeductionSingle;
+    }
+    const standardDeduction =
+        ((filingStatus === 'mfj' ? context.standardDeductionMfj : context.standardDeductionSingle) + seniorDeduction) *
+        nominalFactor;
+
+    const ordinaryIncomeBeforeSS = context.traditionalWithdrawalNominal + context.annuityNominal;
+    const ltcgIncome = context.taxableWithdrawalNominal * (1 - context.taxableBasisFraction);
+
+    const taxableSocialSecurity = calculateTaxableSocialSecurity(
+        ordinaryIncomeBeforeSS + ltcgIncome, context.socialSecurityNominal, filingStatus
+    );
+    const ordinaryIncome = ordinaryIncomeBeforeSS + taxableSocialSecurity;
+
+    // Deduction reduces ordinary income first; any leftover spills onto LTCG (this
+    // matches the IRS worksheet's arithmetic even though it's not written that way).
+    const ordinaryTaxable = Math.max(0, ordinaryIncome - standardDeduction);
+    const totalTaxable = Math.max(0, ordinaryIncome + ltcgIncome - standardDeduction);
+    const ltcgTaxable = totalTaxable - ordinaryTaxable;
+
+    const federalTax = calculateProgressiveTax(ordinaryTaxable, federalBrackets) +
+        calculateStackedLtcgTax(ordinaryTaxable, ltcgTaxable, ltcgBrackets);
+
+    // Flat-rate state tax: no preferential capital gains rate and no state standard
+    // deduction are modeled, since the tax tables dialog only exposes a flat rate.
+    const stateTaxableIncome = ordinaryIncomeBeforeSS + ltcgIncome +
+        (context.stateTaxesSocialSecurity ? taxableSocialSecurity : 0);
+    const stateTax = stateTaxableIncome * context.stateTaxRate;
+
+    const totalTax = federalTax + stateTax;
+    const deflationFactor = context.showTodaysDollars ? 1 / nominalFactor : 1;
+
+    return {
+        year: yearIndex,
+        primaryAge,
+        spouseAge,
+        filingStatus: filingStatus === 'mfj' ? 'MFJ' : 'Single',
+        ordinaryIncome: ordinaryIncome * deflationFactor,
+        ltcgIncome: ltcgIncome * deflationFactor,
+        taxableSocialSecurity: taxableSocialSecurity * deflationFactor,
+        standardDeduction: standardDeduction * deflationFactor,
+        federalTax: federalTax * deflationFactor,
+        stateTax: stateTax * deflationFactor,
+        totalTax: totalTax * deflationFactor,
+    };
+}
+
+function renderTaxProjectionTable(rows) {
+    const tbody = document.getElementById('tax-projection-tbody');
+    tbody.innerHTML = '';
+
+    rows.forEach((row) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${row.year}</td>
+            <td>${row.primaryAge}</td>
+            <td>${row.spouseAge}</td>
+            <td>${row.filingStatus}</td>
+            <td>${formatResultCurrency(row.ordinaryIncome)}</td>
+            <td>${formatResultCurrency(row.ltcgIncome)}</td>
+            <td>${formatResultCurrency(row.taxableSocialSecurity)}</td>
+            <td>${formatResultCurrency(row.standardDeduction)}</td>
+            <td>${formatResultCurrency(row.federalTax)}</td>
+            <td>${formatResultCurrency(row.stateTax)}</td>
+            <td class="total-cell">${formatResultCurrency(row.totalTax)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('tax-projection-section').hidden = false;
 }
 
 document.getElementById('calculate-btn').addEventListener('click', () => {
@@ -647,4 +822,49 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
     }
 
     renderWithdrawalProjectionTable(withdrawalRows);
+
+    // Tax table settings are read once here rather than per-year, since they don't
+    // change across the projection (only the bracket/deduction dollar amounts get
+    // inflated year-by-year, inside calculateTaxYear itself).
+    const taxContextBase = {
+        retirementAge,
+        yearsToRetirement,
+        spouseAgeAtRetirement: expenseContext.spouseAgeAtRetirement,
+        showTodaysDollars: expenseContext.showTodaysDollars,
+        inflationRate: expenseContext.inflationRate,
+        widowAge: expenseContext.widowAge,
+        taxableBasisFraction: parsePercentInput(document.getElementById('taxable-basis-percentage')) / 100,
+        federalBracketsSingle: readBracketInputs('federal-bracket-single', [1, 2, 3, 4, 5, 6, 7]),
+        federalBracketsMfj: readBracketInputs('federal-bracket-mfj', [1, 2, 3, 4, 5, 6, 7]),
+        ltcgBracketsSingle: [
+            { rate: 0, incomeOver: parseCurrencyInput(document.getElementById('ltcg-bracket-single-0')) },
+            { rate: 0.15, incomeOver: parseCurrencyInput(document.getElementById('ltcg-bracket-single-15')) },
+            { rate: 0.20, incomeOver: parseCurrencyInput(document.getElementById('ltcg-bracket-single-20')) },
+        ],
+        ltcgBracketsMfj: [
+            { rate: 0, incomeOver: parseCurrencyInput(document.getElementById('ltcg-bracket-mfj-0')) },
+            { rate: 0.15, incomeOver: parseCurrencyInput(document.getElementById('ltcg-bracket-mfj-15')) },
+            { rate: 0.20, incomeOver: parseCurrencyInput(document.getElementById('ltcg-bracket-mfj-20')) },
+        ],
+        standardDeductionSingle: parseCurrencyInput(document.getElementById('standard-deduction-single')),
+        standardDeductionMfj: parseCurrencyInput(document.getElementById('standard-deduction-mfj')),
+        seniorDeductionSingle: parseCurrencyInput(document.getElementById('senior-deduction-single')),
+        seniorDeductionMfj: parseCurrencyInput(document.getElementById('senior-deduction-mfj')),
+        stateTaxRate: parsePercentInput(document.getElementById('state-tax-rate')) / 100,
+        stateTaxesSocialSecurity: document.getElementById('state-taxes-social-security').checked,
+    };
+
+    const taxRows = [];
+    for (let year = 1; year <= projectionYears; year++) {
+        const yearContext = {
+            ...taxContextBase,
+            traditionalWithdrawalNominal: withdrawalRows[year - 1].traditionalWithdrawalNominal,
+            taxableWithdrawalNominal: withdrawalRows[year - 1].taxableWithdrawalNominal,
+            annuityNominal: annuityRows[year - 1].totalNominal,
+            socialSecurityNominal: socialSecurityRows[year - 1].totalNominal,
+        };
+        taxRows.push(calculateTaxYear(year, yearContext));
+    }
+
+    renderTaxProjectionTable(taxRows);
 });
