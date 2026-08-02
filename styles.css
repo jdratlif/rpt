@@ -313,6 +313,10 @@ h1 {
     background-color: #1e8449;
 }
 
+.results-tabs {
+    margin-top: 30px;
+}
+
 .tax-tables-trigger {
     text-align: right;
     margin: -15px 0 30px;
