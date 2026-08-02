@@ -190,6 +190,27 @@ document.getElementById('save-user-preset-btn').addEventListener('click', saveUs
 document.getElementById('load-user-preset-btn').addEventListener('click', loadUserPreset);
 loadUserPresetOnStartup();
 
+// Allow users to click a row in any projection table to highlight it. Clicking
+// the same row again removes the highlight, and clicking a different row moves
+// the highlight to that row.
+document.querySelectorAll('.projection-table').forEach((table) => {
+    table.addEventListener('click', (event) => {
+        const clickedRow = event.target.closest('tbody tr');
+        if (!clickedRow) {
+            return;
+        }
+        const currentlySelected = table.querySelector('tbody tr.selected-row');
+        if (currentlySelected === clickedRow) {
+            clickedRow.classList.remove('selected-row');
+        } else {
+            if (currentlySelected) {
+                currentlySelected.classList.remove('selected-row');
+            }
+            clickedRow.classList.add('selected-row');
+        }
+    });
+});
+
 // Input sections (Ages/Rates/Portfolio/Roth Conversions/Income/Expenses) and
 // result sections (Summary/Expenses/Annuity/Social Security/Withdrawals/Taxes)
 // each have their own independent tab-list + tab-panels pair; scope switching to

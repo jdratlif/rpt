@@ -382,6 +382,10 @@ h1 {
     font-weight: 600;
 }
 
+.projection-table tbody tr.selected-row {
+    background-color: #d6eaf8;
+}
+
 /* Fix the Expense Projection table to fixed layout so the Temporary and One Time
    columns stay the same width regardless of whether any individual expense is
    non-zero. Without this, auto-layout expands a column as soon as one cell's
