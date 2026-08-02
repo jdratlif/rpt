@@ -323,6 +323,7 @@ function renderExpenseProjectionTable(rows) {
         const irmaaCell = formatSplitCell(
             row.primaryIrmaa, row.spouseIrmaa, row.hasSpouse, row.isWidowed, formatResultCurrency
         );
+        const temporaryCell = row.temporaryExpenses.map(formatResultCurrency).join(' / ');
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -331,9 +332,7 @@ function renderExpenseProjectionTable(rows) {
             <td>${formatResultCurrency(row.common)}</td>
             <td>${medicalCell}</td>
             <td>${irmaaCell}</td>
-            <td>${formatResultCurrency(row.temporaryExpenses[0])}</td>
-            <td>${formatResultCurrency(row.temporaryExpenses[1])}</td>
-            <td>${formatResultCurrency(row.temporaryExpenses[2])}</td>
+            <td>${temporaryCell}</td>
             <td class="total-cell">${formatResultCurrency(row.total)}</td>
         `;
         tbody.appendChild(tr);
