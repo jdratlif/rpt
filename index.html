@@ -214,6 +214,21 @@
                                 <span class="percent-symbol">%</span>
                             </div>
                         </div>
+                        <div class="input-group checkbox-group">
+                            <label for="gross-up-for-taxes">
+                                <input type="checkbox" id="gross-up-for-taxes" name="gross-up-for-taxes" checked />
+                                Gross-Up Withdrawals for Taxes
+                                <span class="tooltip">
+                                    ?
+                                    <span class="tooltip-text">Withdraw extra from the portfolio each year to cover
+                                        the tax bill the withdrawal itself generates, instead of assuming taxes are
+                                        paid from outside cash. Uses a one-shot marginal-rate estimate rather than an
+                                        exact solve, so it may slightly under- or over-shoot (e.g. right at a bracket
+                                        boundary, or when a withdrawal pushes more Social Security into
+                                        taxability).</span>
+                                </span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -792,6 +807,7 @@
                                 <th>Taxable Withdrawal</th>
                                 <th>Traditional Withdrawal</th>
                                 <th>Roth Withdrawal</th>
+                                <th>Tax Gross-Up</th>
                                 <th>Total Withdrawal</th>
                                 <th>Taxable Balance</th>
                                 <th>Traditional Balance</th>

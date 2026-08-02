@@ -447,10 +447,12 @@ function getRmdDivisor(age) {
 // Each year, withdraws the shortfall between expenses and guaranteed income
 // (annuity + Social Security) from the portfolio -- taxable first, then
 // traditional (pre-tax), then Roth last, preserving tax-advantaged growth as
-// long as possible. Everything here runs in nominal dollars; the today's-dollars
-// conversion (like the annuity's) is only applied to the returned display values.
-// Any surplus (guaranteed income exceeding expenses) isn't reinvested -- it's
-// simply left unmodeled as extra cash flow outside the portfolio.
+// long as possible. Then, if the caller supplied a tax gross-up amount (see
+// computeYearRows), withdraws that too, continuing the same waterfall. Everything
+// here runs in nominal dollars; the today's-dollars conversion (like the
+// annuity's) is only applied to the returned display values. Any surplus
+// (guaranteed income exceeding expenses) isn't reinvested -- it's simply left
+// unmodeled as extra cash flow outside the portfolio.
 function calculateWithdrawalYear(yearIndex, context, accounts) {
     const primaryAge = context.retirementAge + (yearIndex - 1);
     const spouseAge = context.spouseAgeAtRetirement + (yearIndex - 1);
@@ -466,17 +468,34 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
         : 0;
 
     let remaining = shortfall;
-    const taxableWithdrawal = withdrawFromAccount(accounts.taxable, remaining);
+    let taxableWithdrawal = withdrawFromAccount(accounts.taxable, remaining);
     remaining -= taxableWithdrawal;
 
     // The traditional withdrawal must be bumped up to the RMD even if that's more
     // than needed to cover expenses; the unneeded excess is simply left unmodeled
     // as extra cash flow outside the portfolio, like any other income surplus.
-    const traditionalWithdrawal = withdrawFromAccount(accounts.traditional, Math.max(remaining, rmdAmount));
+    let traditionalWithdrawal = withdrawFromAccount(accounts.traditional, Math.max(remaining, rmdAmount));
     remaining = Math.max(0, remaining - traditionalWithdrawal);
 
-    const rothWithdrawal = withdrawFromAccount(accounts.roth, remaining);
+    let rothWithdrawal = withdrawFromAccount(accounts.roth, remaining);
     remaining -= rothWithdrawal;
+
+    // Gross-up: the caller sizes this to (approximately) cover this year's own tax
+    // bill, so it's withdrawn on top of the shortfall above, continuing the same
+    // taxable -> traditional -> Roth waterfall (a Roth-funded gross-up needs no
+    // further tax since Roth withdrawals aren't taxed).
+    let taxGrossUpRemaining = Math.max(0, context.additionalWithdrawalForTaxes || 0);
+    const grossUpFromTaxable = withdrawFromAccount(accounts.taxable, taxGrossUpRemaining);
+    taxGrossUpRemaining -= grossUpFromTaxable;
+    const grossUpFromTraditional = withdrawFromAccount(accounts.traditional, taxGrossUpRemaining);
+    taxGrossUpRemaining -= grossUpFromTraditional;
+    const grossUpFromRoth = withdrawFromAccount(accounts.roth, taxGrossUpRemaining);
+    taxGrossUpRemaining -= grossUpFromRoth;
+
+    taxableWithdrawal += grossUpFromTaxable;
+    traditionalWithdrawal += grossUpFromTraditional;
+    rothWithdrawal += grossUpFromRoth;
+    const taxGrossUpWithdrawal = grossUpFromTaxable + grossUpFromTraditional + grossUpFromRoth;
 
     // Whatever remains after the withdrawal grows for the rest of the year, so the
     // ending balance reflects a full year of stock/bond returns on the reduced base.
@@ -501,12 +520,16 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
         taxableWithdrawal: taxableWithdrawal * deflationFactor,
         traditionalWithdrawal: traditionalWithdrawal * deflationFactor,
         rothWithdrawal: rothWithdrawal * deflationFactor,
+        // Already included in the three withdrawal figures above; broken out here
+        // just so it's visible how much of the withdrawal was for taxes vs. spending.
+        taxGrossUpWithdrawal: taxGrossUpWithdrawal * deflationFactor,
         totalWithdrawal: (taxableWithdrawal + traditionalWithdrawal + rothWithdrawal) * deflationFactor,
         taxableBalance: taxableBalance * deflationFactor,
         traditionalBalance: traditionalBalance * deflationFactor,
         rothBalance: rothBalance * deflationFactor,
         totalBalance: (taxableBalance + traditionalBalance + rothBalance) * deflationFactor,
         // Already nominal -- needed by the tax projection regardless of display mode.
+        rmdAmountNominal: rmdAmount,
         taxableWithdrawalNominal: taxableWithdrawal,
         traditionalWithdrawalNominal: traditionalWithdrawal,
     };
@@ -526,6 +549,7 @@ function renderWithdrawalProjectionTable(rows) {
             <td>${formatResultCurrency(row.taxableWithdrawal)}</td>
             <td>${formatResultCurrency(row.traditionalWithdrawal)}</td>
             <td>${formatResultCurrency(row.rothWithdrawal)}</td>
+            <td>${formatResultCurrency(row.taxGrossUpWithdrawal)}</td>
             <td class="total-cell">${formatResultCurrency(row.totalWithdrawal)}</td>
             <td>${formatResultCurrency(row.taxableBalance)}</td>
             <td>${formatResultCurrency(row.traditionalBalance)}</td>
@@ -613,6 +637,40 @@ function calculateTaxableSocialSecurity(otherIncome, ssBenefit, filingStatus) {
 // statute and have never been inflation-indexed, unlike the income tax brackets.
 const NIIT_RATE = 0.038;
 const NIIT_MAGI_THRESHOLDS = { single: 200000, mfj: 250000 };
+
+// Finds the marginal rate that would apply to the next dollar of income at the
+// given level, using the same bracket ladder as calculateProgressiveTax /
+// calculateStackedLtcgTax (ascending by incomeOver).
+function findMarginalRate(income, brackets) {
+    let rate = brackets[0].rate;
+    for (const bracket of brackets) {
+        if (income >= bracket.incomeOver) {
+            rate = bracket.rate;
+        }
+    }
+    return rate;
+}
+
+// One-shot estimate of the combined marginal rate (federal + state + NIIT) on the
+// next withdrawal dollar, based on which account it would come from -- used to
+// size the withdrawal gross-up in computeYearRows without an iterative solve.
+// Deliberately ignores secondary effects like a dollar pushing more Social
+// Security into taxability (the "torpedo" zone), which would otherwise require
+// re-solving the whole tax calculation for each candidate gross-up amount.
+function estimateWithdrawalMarginalRate(source, taxResult, stateTaxRate, taxableBasisFraction) {
+    if (source === 'roth') {
+        return 0; // Roth withdrawals are never taxed.
+    }
+    if (source === 'traditional') {
+        return findMarginalRate(taxResult.ordinaryTaxable, taxResult.federalBrackets) + stateTaxRate;
+    }
+    // source === 'taxable': only the non-basis fraction is taxed, as LTCG stacked
+    // on top of ordinary income; NIIT applies once MAGI is already past threshold.
+    const combinedTop = taxResult.ordinaryTaxable + taxResult.ltcgTaxable;
+    const ltcgRate = findMarginalRate(combinedTop, taxResult.ltcgBrackets);
+    const niitRate = taxResult.magiNominal > NIIT_MAGI_THRESHOLDS[taxResult.filingStatusRaw] ? NIIT_RATE : 0;
+    return (1 - taxableBasisFraction) * (ltcgRate + niitRate + stateTaxRate);
+}
 
 // 2026 Medicare Part B IRMAA tiers (ssa.gov): the surcharge added on top of the
 // base Part B premium once MAGI exceeds each threshold. The surcharge dollar
@@ -723,6 +781,12 @@ function calculateTaxYear(yearIndex, context) {
         // 2 years later -- keep these nominal/unconverted regardless of display mode.
         filingStatusRaw: filingStatus,
         magiNominal,
+        // Internal-use fields (not displayed) that the withdrawal gross-up's
+        // one-shot marginal-rate estimate needs -- see estimateWithdrawalMarginalRate.
+        ordinaryTaxable,
+        ltcgTaxable,
+        federalBrackets,
+        ltcgBrackets,
         ordinaryIncome: ordinaryIncome * deflationFactor,
         ltcgIncome: ltcgIncome * deflationFactor,
         taxableSocialSecurity: taxableSocialSecurity * deflationFactor,
@@ -731,6 +795,8 @@ function calculateTaxYear(yearIndex, context) {
         niit: niit * deflationFactor,
         stateTax: stateTax * deflationFactor,
         totalTax: totalTax * deflationFactor,
+        // Already nominal -- needed by the withdrawal gross-up regardless of display mode.
+        totalTaxNominal: totalTax,
     };
 }
 
@@ -930,6 +996,16 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         stateTaxesSocialSecurity: document.getElementById('state-taxes-social-security').checked,
     };
 
+    // Whether to withdraw extra each year to cover that year's own tax bill. When
+    // off, behavior is unchanged from before this feature existed (taxes are simply
+    // reported, not funded by additional withdrawals).
+    const grossUpForTaxes = document.getElementById('gross-up-for-taxes').checked;
+
+    // A balance difference this small is treated as "no room left" in an account,
+    // avoiding floating-point noise from repeatedly picking that account as the
+    // gross-up source for a fraction of a cent.
+    const GROSS_UP_EPSILON = 0.01;
+
     // Computes a full expense -> withdrawal -> tax pass for a given year-by-year set
     // of IRMAA Medicare surcharges. Run twice: first with no IRMAA (just to learn
     // each year's income for the lookback below), then again with the real
@@ -949,24 +1025,83 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
             roth: { ...startingAccounts.roth },
         };
 
-        const withdrawalRows = [];
-        for (let year = 1; year <= projectionYears; year++) {
-            const expensesNominal = expenseRows[year - 1].totalNominal;
-            const incomeNominal = annuityRows[year - 1].totalNominal + socialSecurityRows[year - 1].totalNominal;
-            const yearContext = { ...withdrawalContextBase, expensesNominal, incomeNominal };
-            withdrawalRows.push(calculateWithdrawalYear(year, yearContext, withdrawalAccounts));
-        }
+        const buildTaxContext = (withdrawalRow, annuityNominal, socialSecurityNominal) => ({
+            ...taxContextBase,
+            traditionalWithdrawalNominal: withdrawalRow.traditionalWithdrawalNominal,
+            taxableWithdrawalNominal: withdrawalRow.taxableWithdrawalNominal,
+            annuityNominal,
+            socialSecurityNominal,
+        });
 
+        const withdrawalRows = [];
         const taxRows = [];
         for (let year = 1; year <= projectionYears; year++) {
-            const yearContext = {
-                ...taxContextBase,
-                traditionalWithdrawalNominal: withdrawalRows[year - 1].traditionalWithdrawalNominal,
-                taxableWithdrawalNominal: withdrawalRows[year - 1].taxableWithdrawalNominal,
-                annuityNominal: annuityRows[year - 1].totalNominal,
-                socialSecurityNominal: socialSecurityRows[year - 1].totalNominal,
-            };
-            taxRows.push(calculateTaxYear(year, yearContext));
+            const expensesNominal = expenseRows[year - 1].totalNominal;
+            const annuityNominal = annuityRows[year - 1].totalNominal;
+            const socialSecurityNominal = socialSecurityRows[year - 1].totalNominal;
+            const incomeNominal = annuityNominal + socialSecurityNominal;
+            const yearWithdrawalContext = { ...withdrawalContextBase, expensesNominal, incomeNominal };
+
+            let additionalWithdrawalForTaxes = 0;
+
+            if (grossUpForTaxes) {
+                // Dry run against a throwaway clone to learn the base (pre-gross-up)
+                // withdrawal composition and its resulting tax, without touching the
+                // real account balances -- those are only mutated once, below, by the
+                // real (final) withdrawal for the year.
+                const dryRunAccounts = {
+                    taxable: { ...withdrawalAccounts.taxable },
+                    traditional: { ...withdrawalAccounts.traditional },
+                    roth: { ...withdrawalAccounts.roth },
+                };
+                const baseWithdrawal = calculateWithdrawalYear(year, yearWithdrawalContext, dryRunAccounts);
+                const baseTaxRow = calculateTaxYear(
+                    year, buildTaxContext(baseWithdrawal, annuityNominal, socialSecurityNominal)
+                );
+
+                // "Surplus" cash not needed for spending -- guaranteed income beyond
+                // expenses, or an RMD forced above the shortfall -- is assumed to go
+                // toward taxes first, before any extra withdrawal is needed.
+                const shortfall = Math.max(0, expensesNominal - incomeNominal);
+                const incomeSurplus = Math.max(0, incomeNominal - expensesNominal);
+                const rmdExcess = Math.max(
+                    0,
+                    baseWithdrawal.rmdAmountNominal - Math.max(0, shortfall - baseWithdrawal.taxableWithdrawalNominal)
+                );
+                const netCashNeeded = Math.max(0, baseTaxRow.totalTaxNominal - incomeSurplus - rmdExcess);
+
+                if (netCashNeeded > 0) {
+                    // The gross-up dollar comes from whichever account still has room,
+                    // continuing the same taxable -> traditional -> Roth waterfall the
+                    // base withdrawal used.
+                    const taxableStart = withdrawalAccounts.taxable.stock + withdrawalAccounts.taxable.bond;
+                    const traditionalStart = withdrawalAccounts.traditional.stock + withdrawalAccounts.traditional.bond;
+                    let source;
+                    if (taxableStart - baseWithdrawal.taxableWithdrawalNominal > GROSS_UP_EPSILON) {
+                        source = 'taxable';
+                    } else if (traditionalStart - baseWithdrawal.traditionalWithdrawalNominal > GROSS_UP_EPSILON) {
+                        source = 'traditional';
+                    } else {
+                        source = 'roth';
+                    }
+                    // Clamp well below 100% as a safety net against a division blow-up;
+                    // real combined marginal rates never approach this in practice.
+                    const marginalRate = Math.min(0.9, estimateWithdrawalMarginalRate(
+                        source, baseTaxRow, taxContextBase.stateTaxRate, taxContextBase.taxableBasisFraction
+                    ));
+                    additionalWithdrawalForTaxes = netCashNeeded / (1 - marginalRate);
+                }
+            }
+
+            const withdrawalRow = calculateWithdrawalYear(
+                year, { ...yearWithdrawalContext, additionalWithdrawalForTaxes }, withdrawalAccounts
+            );
+            withdrawalRows.push(withdrawalRow);
+            // Recomputed against the final (possibly grossed-up) withdrawal amounts so
+            // the displayed tax always matches the displayed withdrawal; since this is a
+            // one-shot estimate rather than an iterative solve, it may not be an exact
+            // break-even (the gross-up's own marginal tax isn't grossed up further).
+            taxRows.push(calculateTaxYear(year, buildTaxContext(withdrawalRow, annuityNominal, socialSecurityNominal)));
         }
 
         return { expenseRows, withdrawalRows, taxRows };
