@@ -913,6 +913,9 @@ function calculateTaxYear(yearIndex, context) {
         totalTax: totalTax * deflationFactor,
         marginalFederalRate,
         effectiveTaxRate,
+        // Deflated to match totalTax above, so the two can be summed across years
+        // for a dollar-weighted running average rate (totalTax / totalIncome).
+        totalIncome: totalIncomeNominal * deflationFactor,
         // Already nominal -- needed by the withdrawal gross-up regardless of display mode.
         totalTaxNominal: totalTax,
     };
@@ -924,16 +927,18 @@ function renderTaxProjectionTable(rows) {
 
     // Running total uses the same (possibly today's-dollars-deflated) totalTax
     // figures shown per row, so it matches what a reader would get adding the
-    // Total column by hand; the running rate is a plain (unweighted) mean of
-    // effectiveTaxRate across years so far, not a tax-dollar-weighted average.
+    // Total column by hand; the running rate is dollar-weighted (running total
+    // tax / running total income), not a plain mean of each year's own rate --
+    // that avoids a low-income year with a single large event (e.g. a Roth
+    // conversion) skewing the average out of proportion to the dollars involved.
     let runningTotalTax = 0;
-    let runningEffectiveRateSum = 0;
+    let runningTotalIncome = 0;
 
     rows.forEach((row, index) => {
         const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
         runningTotalTax += row.totalTax;
-        runningEffectiveRateSum += row.effectiveTaxRate;
-        const runningAvgRate = runningEffectiveRateSum / (index + 1);
+        runningTotalIncome += row.totalIncome;
+        const runningAvgRate = runningTotalIncome > 0 ? runningTotalTax / runningTotalIncome : 0;
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${row.year}</td>
