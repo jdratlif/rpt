@@ -114,19 +114,24 @@ document.getElementById('reset-btn').addEventListener('click', () => {
     updateSpouseInputsDisabled();
 });
 
-// Input sections (Ages/Rates/Portfolio/Roth Conversions/Income/Expenses) are
-// tabbed to shorten the page; each button's data-tab names the panel section id.
-document.querySelectorAll('.tab-button').forEach((button) => {
-    button.addEventListener('click', () => {
-        document.querySelectorAll('.tab-button').forEach((otherButton) => {
-            otherButton.classList.remove('active');
-            otherButton.setAttribute('aria-selected', 'false');
-        });
-        button.classList.add('active');
-        button.setAttribute('aria-selected', 'true');
+// Input sections (Ages/Rates/Portfolio/Roth Conversions/Income/Expenses) and
+// result sections (Summary/Expenses/Annuity/Social Security/Withdrawals/Taxes)
+// each have their own independent tab-list + tab-panels pair; scope switching to
+// the clicked button's own group so the two tab groups don't affect each other.
+document.querySelectorAll('.tab-list').forEach((tabList) => {
+    const panels = tabList.nextElementSibling;
+    tabList.querySelectorAll('.tab-button').forEach((button) => {
+        button.addEventListener('click', () => {
+            tabList.querySelectorAll('.tab-button').forEach((otherButton) => {
+                otherButton.classList.remove('active');
+                otherButton.setAttribute('aria-selected', 'false');
+            });
+            button.classList.add('active');
+            button.setAttribute('aria-selected', 'true');
 
-        document.querySelectorAll('.tab-panel').forEach((panel) => {
-            panel.hidden = panel.id !== button.dataset.tab;
+            panels.querySelectorAll('.tab-panel').forEach((panel) => {
+                panel.hidden = panel.id !== button.dataset.tab;
+            });
         });
     });
 });
@@ -302,8 +307,6 @@ function renderExpenseProjectionTable(rows) {
         `;
         tbody.appendChild(tr);
     });
-
-    document.getElementById('expense-projection-section').hidden = false;
 }
 
 // Annuity payments are fixed nominal amounts once they start (no inflation raises).
@@ -356,8 +359,6 @@ function renderAnnuityProjectionTable(rows) {
         `;
         tbody.appendChild(tr);
     });
-
-    document.getElementById('annuity-projection-section').hidden = false;
 }
 
 // Social Security's full retirement age (FRA) for anyone retiring in the
@@ -435,8 +436,6 @@ function renderSocialSecurityProjectionTable(rows) {
         `;
         tbody.appendChild(tr);
     });
-
-    document.getElementById('social-security-projection-section').hidden = false;
 }
 
 // SECURE 2.0 requires traditional IRA/401(k) distributions to begin at age 73
@@ -575,8 +574,6 @@ function renderWithdrawalProjectionTable(rows) {
         `;
         tbody.appendChild(tr);
     });
-
-    document.getElementById('withdrawal-projection-section').hidden = false;
 }
 
 // Reads a filing status's 7 federal brackets as {rate, incomeOver} pairs.
@@ -839,8 +836,6 @@ function renderTaxProjectionTable(rows) {
         `;
         tbody.appendChild(tr);
     });
-
-    document.getElementById('tax-projection-section').hidden = false;
 }
 
 document.getElementById('calculate-btn').addEventListener('click', () => {
@@ -890,8 +885,6 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
     document.getElementById('result-taxable-balance').textContent = formatResultCurrency(taxableResult);
     document.getElementById('result-total-balance').textContent =
         formatResultCurrency(traditionalResult + rothResult + taxableResult);
-
-    document.getElementById('results-section').hidden = false;
 
     const projectionYears = parseFloat(document.getElementById('projection-years').value) || 0;
     const spouseCurrentAge = parseFloat(document.getElementById('spouse-current-age').value) || 0;
@@ -1147,4 +1140,6 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
     renderExpenseProjectionTable(finalPass.expenseRows);
     renderWithdrawalProjectionTable(finalPass.withdrawalRows);
     renderTaxProjectionTable(finalPass.taxRows);
+
+    document.getElementById('results-tabs').hidden = false;
 });

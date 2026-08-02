@@ -765,148 +765,166 @@
                 <button type="button" id="reset-btn">Reset</button>
             </div>
 
-            <!-- Results -->
-            <section class="top-section" id="results-section" hidden>
-                <h2 class="section-title">Portfolio at Retirement</h2>
-                <div class="top-input-grid horizontal">
-                    <div class="input-group">
-                        <label>Traditional</label>
-                        <div class="result-value" id="result-traditional-balance">$0</div>
-                    </div>
-                    <div class="input-group">
-                        <label>Roth</label>
-                        <div class="result-value" id="result-roth-balance">$0</div>
-                    </div>
-                    <div class="input-group">
-                        <label>Taxable</label>
-                        <div class="result-value" id="result-taxable-balance">$0</div>
-                    </div>
-                    <div class="input-group">
-                        <label>Total</label>
-                        <div class="result-value" id="result-total-balance">$0</div>
-                    </div>
+            <div class="results-tabs" id="results-tabs" hidden>
+                <div class="tab-list" role="tablist">
+                    <button type="button" class="tab-button active" data-tab="results-section" role="tab"
+                        aria-selected="true">Summary</button>
+                    <button type="button" class="tab-button" data-tab="expense-projection-section" role="tab"
+                        aria-selected="false">Expenses</button>
+                    <button type="button" class="tab-button" data-tab="annuity-projection-section" role="tab"
+                        aria-selected="false">Annuity</button>
+                    <button type="button" class="tab-button" data-tab="social-security-projection-section" role="tab"
+                        aria-selected="false">Social Security</button>
+                    <button type="button" class="tab-button" data-tab="withdrawal-projection-section" role="tab"
+                        aria-selected="false">Withdrawals</button>
+                    <button type="button" class="tab-button" data-tab="tax-projection-section" role="tab"
+                        aria-selected="false">Taxes</button>
                 </div>
-            </section>
+                <div class="tab-panels">
+                    <!-- Results -->
+                    <section class="top-section tab-panel active" id="results-section">
+                        <h2 class="section-title">Portfolio at Retirement</h2>
+                        <div class="top-input-grid horizontal">
+                            <div class="input-group">
+                                <label>Traditional</label>
+                                <div class="result-value" id="result-traditional-balance">$0</div>
+                            </div>
+                            <div class="input-group">
+                                <label>Roth</label>
+                                <div class="result-value" id="result-roth-balance">$0</div>
+                            </div>
+                            <div class="input-group">
+                                <label>Taxable</label>
+                                <div class="result-value" id="result-taxable-balance">$0</div>
+                            </div>
+                            <div class="input-group">
+                                <label>Total</label>
+                                <div class="result-value" id="result-total-balance">$0</div>
+                            </div>
+                        </div>
+                    </section>
 
-            <!-- Expense Projection Results -->
-            <section class="top-section" id="expense-projection-section" hidden>
-                <h2 class="section-title">Expense Projection</h2>
-                <div class="table-scroll">
-                    <table class="projection-table" id="expense-projection-table">
-                        <thead>
-                            <tr>
-                                <th>Year</th>
-                                <th>Primary Age</th>
-                                <th>Spouse Age</th>
-                                <th>Common</th>
-                                <th>Primary Pre-Medicare</th>
-                                <th>Spouse Pre-Medicare</th>
-                                <th>Primary Medicare</th>
-                                <th>Spouse Medicare</th>
-                                <th>IRMAA Surcharge</th>
-                                <th>Temporary 1</th>
-                                <th>Temporary 2</th>
-                                <th>Temporary 3</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="expense-projection-tbody"></tbody>
-                    </table>
-                </div>
-            </section>
+                    <!-- Expense Projection Results -->
+                    <section class="top-section tab-panel" id="expense-projection-section" hidden>
+                        <h2 class="section-title">Expense Projection</h2>
+                        <div class="table-scroll">
+                            <table class="projection-table" id="expense-projection-table">
+                                <thead>
+                                    <tr>
+                                        <th>Year</th>
+                                        <th>Primary Age</th>
+                                        <th>Spouse Age</th>
+                                        <th>Common</th>
+                                        <th>Primary Pre-Medicare</th>
+                                        <th>Spouse Pre-Medicare</th>
+                                        <th>Primary Medicare</th>
+                                        <th>Spouse Medicare</th>
+                                        <th>IRMAA Surcharge</th>
+                                        <th>Temporary 1</th>
+                                        <th>Temporary 2</th>
+                                        <th>Temporary 3</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expense-projection-tbody"></tbody>
+                            </table>
+                        </div>
+                    </section>
 
-            <!-- Annuity Projection Results -->
-            <section class="top-section" id="annuity-projection-section" hidden>
-                <h2 class="section-title">Annuity Income Projection</h2>
-                <div class="table-scroll">
-                    <table class="projection-table" id="annuity-projection-table">
-                        <thead>
-                            <tr>
-                                <th>Year</th>
-                                <th>Primary Age</th>
-                                <th>Spouse Age</th>
-                                <th>Primary Annuity</th>
-                                <th>Spouse Annuity</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="annuity-projection-tbody"></tbody>
-                    </table>
-                </div>
-            </section>
+                    <!-- Annuity Projection Results -->
+                    <section class="top-section tab-panel" id="annuity-projection-section" hidden>
+                        <h2 class="section-title">Annuity Income Projection</h2>
+                        <div class="table-scroll">
+                            <table class="projection-table" id="annuity-projection-table">
+                                <thead>
+                                    <tr>
+                                        <th>Year</th>
+                                        <th>Primary Age</th>
+                                        <th>Spouse Age</th>
+                                        <th>Primary Annuity</th>
+                                        <th>Spouse Annuity</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="annuity-projection-tbody"></tbody>
+                            </table>
+                        </div>
+                    </section>
 
-            <!-- Social Security Projection Results -->
-            <section class="top-section" id="social-security-projection-section" hidden>
-                <h2 class="section-title">Social Security Benefit Projection</h2>
-                <div class="table-scroll">
-                    <table class="projection-table" id="social-security-projection-table">
-                        <thead>
-                            <tr>
-                                <th>Year</th>
-                                <th>Primary Age</th>
-                                <th>Spouse Age</th>
-                                <th>Primary SS</th>
-                                <th>Spouse SS</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="social-security-projection-tbody"></tbody>
-                    </table>
-                </div>
-            </section>
+                    <!-- Social Security Projection Results -->
+                    <section class="top-section tab-panel" id="social-security-projection-section" hidden>
+                        <h2 class="section-title">Social Security Benefit Projection</h2>
+                        <div class="table-scroll">
+                            <table class="projection-table" id="social-security-projection-table">
+                                <thead>
+                                    <tr>
+                                        <th>Year</th>
+                                        <th>Primary Age</th>
+                                        <th>Spouse Age</th>
+                                        <th>Primary SS</th>
+                                        <th>Spouse SS</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="social-security-projection-tbody"></tbody>
+                            </table>
+                        </div>
+                    </section>
 
-            <!-- Portfolio Withdrawal Projection Results -->
-            <section class="top-section" id="withdrawal-projection-section" hidden>
-                <h2 class="section-title">Portfolio Withdrawal Projection</h2>
-                <div class="table-scroll">
-                    <table class="projection-table" id="withdrawal-projection-table">
-                        <thead>
-                            <tr>
-                                <th>Year</th>
-                                <th>Primary Age</th>
-                                <th>Spouse Age</th>
-                                <th>RMD</th>
-                                <th>Taxable Withdrawal</th>
-                                <th>Traditional Withdrawal</th>
-                                <th>Roth Withdrawal</th>
-                                <th>Tax Gross-Up</th>
-                                <th>Total Withdrawal</th>
-                                <th>Taxable Balance</th>
-                                <th>Traditional Balance</th>
-                                <th>Roth Balance</th>
-                                <th>Total Balance</th>
-                            </tr>
-                        </thead>
-                        <tbody id="withdrawal-projection-tbody"></tbody>
-                    </table>
-                </div>
-            </section>
+                    <!-- Portfolio Withdrawal Projection Results -->
+                    <section class="top-section tab-panel" id="withdrawal-projection-section" hidden>
+                        <h2 class="section-title">Portfolio Withdrawal Projection</h2>
+                        <div class="table-scroll">
+                            <table class="projection-table" id="withdrawal-projection-table">
+                                <thead>
+                                    <tr>
+                                        <th>Year</th>
+                                        <th>Primary Age</th>
+                                        <th>Spouse Age</th>
+                                        <th>RMD</th>
+                                        <th>Taxable Withdrawal</th>
+                                        <th>Traditional Withdrawal</th>
+                                        <th>Roth Withdrawal</th>
+                                        <th>Tax Gross-Up</th>
+                                        <th>Total Withdrawal</th>
+                                        <th>Taxable Balance</th>
+                                        <th>Traditional Balance</th>
+                                        <th>Roth Balance</th>
+                                        <th>Total Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="withdrawal-projection-tbody"></tbody>
+                            </table>
+                        </div>
+                    </section>
 
-            <!-- Tax Projection Results -->
-            <section class="top-section" id="tax-projection-section" hidden>
-                <h2 class="section-title">Tax Projection</h2>
-                <div class="table-scroll">
-                    <table class="projection-table" id="tax-projection-table">
-                        <thead>
-                            <tr>
-                                <th>Year</th>
-                                <th>Primary Age</th>
-                                <th>Spouse Age</th>
-                                <th>Filing Status</th>
-                                <th>Ordinary Income</th>
-                                <th>Capital Gains Income</th>
-                                <th>Taxable SS</th>
-                                <th>Standard Deduction</th>
-                                <th>Federal Income Tax</th>
-                                <th>NIIT</th>
-                                <th>State Tax</th>
-                                <th>Total Tax</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tax-projection-tbody"></tbody>
-                    </table>
+                    <!-- Tax Projection Results -->
+                    <section class="top-section tab-panel" id="tax-projection-section" hidden>
+                        <h2 class="section-title">Tax Projection</h2>
+                        <div class="table-scroll">
+                            <table class="projection-table" id="tax-projection-table">
+                                <thead>
+                                    <tr>
+                                        <th>Year</th>
+                                        <th>Primary Age</th>
+                                        <th>Spouse Age</th>
+                                        <th>Filing Status</th>
+                                        <th>Ordinary Income</th>
+                                        <th>Capital Gains Income</th>
+                                        <th>Taxable SS</th>
+                                        <th>Standard Deduction</th>
+                                        <th>Federal Income Tax</th>
+                                        <th>NIIT</th>
+                                        <th>State Tax</th>
+                                        <th>Total Tax</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tax-projection-tbody"></tbody>
+                            </table>
+                        </div>
+                    </section>
                 </div>
-            </section>
+            </div>
 
             <!-- Tax Tables Modal -->
             <dialog id="tax-tables-modal">
