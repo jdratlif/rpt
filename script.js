@@ -184,15 +184,22 @@ function calculateExpenseYear(yearIndex, context) {
     const spouseAge = context.spouseAgeAtRetirement + (yearIndex - 1);
 
     const common = context.monthlyExpenses * 12;
-    const primaryPreMedicare = primaryAge < 65 ? context.primaryPreMedicareExpenses * 12 : 0;
+    let primaryPreMedicare = primaryAge < 65 ? context.primaryPreMedicareExpenses * 12 : 0;
     const spousePreMedicare = spouseAge < 65 ? context.spousePreMedicareExpenses * 12 : 0;
     // Part B is a fixed per-person premium once Medicare eligibility starts at 65;
     // Part D is excluded since its premium varies widely by plan.
-    const primaryMedicare = primaryAge >= 65 ? context.medicarePartBPremium * 12 : 0;
+    let primaryMedicare = primaryAge >= 65 ? context.medicarePartBPremium * 12 : 0;
     const spouseMedicare = spouseAge >= 65 ? context.medicarePartBPremium * 12 : 0;
     const temporaryExpenses = context.temporaryExpenses.map((expense) =>
         (primaryAge >= expense.startAge && primaryAge <= expense.endAge) ? expense.amount * 12 : 0
     );
+
+    // Primary is assumed deceased once the spouse reaches widow age, so his own
+    // Medicare/pre-Medicare costs stop (the spouse's are unaffected).
+    if (context.widowAge > 0 && spouseAge >= context.widowAge) {
+        primaryPreMedicare = 0;
+        primaryMedicare = 0;
+    }
 
     const rawTotal = common + primaryPreMedicare + spousePreMedicare + primaryMedicare + spouseMedicare +
         temporaryExpenses.reduce((sum, value) => sum + value, 0);
@@ -511,6 +518,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         spouseAgeAtRetirement: spouseCurrentAge + yearsToRetirement,
         showTodaysDollars: document.getElementById('todays-dollars').checked,
         inflationRate: parsePercentInput(document.getElementById('inflation-percentage')) / 100,
+        widowAge: parseFloat(document.getElementById('widow-age').value) || 0,
         monthlyExpenses: parseCurrencyInput(document.getElementById('monthly-expenses')),
         primaryPreMedicareExpenses: parseCurrencyInput(document.getElementById('pre-medicare-expenses-primary')),
         spousePreMedicareExpenses: parseCurrencyInput(document.getElementById('pre-medicare-expenses-spouse')),
@@ -535,7 +543,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         spouseAgeAtRetirement: expenseContext.spouseAgeAtRetirement,
         showTodaysDollars: expenseContext.showTodaysDollars,
         inflationRate: expenseContext.inflationRate,
-        widowAge: parseFloat(document.getElementById('widow-age').value) || 0,
+        widowAge: expenseContext.widowAge,
         primaryAnnuityAge: parseFloat(document.getElementById('primary-annuity-age').value) || 0,
         spouseAnnuityAge: parseFloat(document.getElementById('spouse-annuity-age').value) || 0,
         primaryAnnuityIncome: parseCurrencyInput(document.getElementById('annuity-primary-income')),
