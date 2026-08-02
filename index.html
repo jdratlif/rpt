@@ -238,7 +238,7 @@
                                         <span class="percent-symbol">%</span>
                                     </div>
                                 </div>
-                                <div class="input-group checkbox-group">
+                                <div class="input-group checkbox-group advanced-options-row">
                                     <label for="gross-up-for-taxes">
                                         <input type="checkbox" id="gross-up-for-taxes" name="gross-up-for-taxes"
                                             checked />
@@ -257,11 +257,13 @@
                                                 taxability).</span>
                                         </span>
                                     </label>
+                                    <button type="button" id="open-tax-tables-btn" class="link-button">Edit Tax Tables
+                                        (Advanced)</button>
                                 </div>
                             </div>
                         </div>
                         <!-- Advanced Stock Returns Trigger -->
-                        <div class="tax-tables-trigger">
+                        <div class="advanced-options-row standalone">
                             <div class="input-group checkbox-group advanced-stock-returns-toggle">
                                 <label for="use-advanced-stock-returns">
                                     <input type="checkbox" id="use-advanced-stock-returns"
@@ -277,11 +279,6 @@
                             </div>
                             <button type="button" id="open-advanced-stock-returns-btn" class="link-button">Edit
                                 Yearly Stock Returns (Advanced)</button>
-                        </div>
-                        <!-- Tax Tables Trigger -->
-                        <div class="tax-tables-trigger">
-                            <button type="button" id="open-tax-tables-btn" class="link-button">Edit Tax Tables
-                                (Advanced)</button>
                         </div>
                     </section>
 
@@ -1047,11 +1044,18 @@
                 </div>
 
                 <div class="average-return-display">
-                    Average Return: <span id="advanced-stock-returns-average">7.0%</span>
+                    CAGR: <span id="advanced-stock-returns-average">7.0%</span>
                 </div>
 
                 <div class="advanced-stock-returns-grid" id="advanced-stock-returns-grid">
                     <!-- Populated dynamically based on Projection Years. -->
+                </div>
+
+                <div class="sequence-actions">
+                    <button type="button" id="generate-bad-sequence-btn" class="bad-sequence-btn">Generate Bad
+                        Sequence</button>
+                    <button type="button" id="generate-good-sequence-btn" class="good-sequence-btn">Generate Good
+                        Sequence</button>
                 </div>
 
                 <div class="actions">
