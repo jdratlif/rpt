@@ -114,6 +114,23 @@ document.getElementById('reset-btn').addEventListener('click', () => {
     updateSpouseInputsDisabled();
 });
 
+// Input sections (Ages/Rates/Portfolio/Roth Conversions/Income/Expenses) are
+// tabbed to shorten the page; each button's data-tab names the panel section id.
+document.querySelectorAll('.tab-button').forEach((button) => {
+    button.addEventListener('click', () => {
+        document.querySelectorAll('.tab-button').forEach((otherButton) => {
+            otherButton.classList.remove('active');
+            otherButton.setAttribute('aria-selected', 'false');
+        });
+        button.classList.add('active');
+        button.setAttribute('aria-selected', 'true');
+
+        document.querySelectorAll('.tab-panel').forEach((panel) => {
+            panel.hidden = panel.id !== button.dataset.tab;
+        });
+    });
+});
+
 // Tax Tables modal: rarely-edited settings tucked behind a native <dialog> instead
 // of cluttering the main form.
 const taxTablesModal = document.getElementById('tax-tables-modal');
