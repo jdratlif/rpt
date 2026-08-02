@@ -229,6 +229,16 @@ function formatAgeCell(primaryAge, spouseAge, hasSpouse, isWidowed) {
     return hasSpouse ? `${primaryAgeDisplay} / ${spouseAge}` : primaryAgeDisplay;
 }
 
+// Splits a per-person value pair (medical expenses, IRMAA, etc.) into a single
+// cell: just the primary's value when unmarried, just the spouse's once widowed
+// (the primary's own value is $0 by then anyway), or "primary / spouse" otherwise.
+function formatSplitCell(primaryValue, spouseValue, hasSpouse, isWidowed, formatFn) {
+    if (!hasSpouse) {
+        return formatFn(primaryValue);
+    }
+    return isWidowed ? formatFn(spouseValue) : `${formatFn(primaryValue)} / ${formatFn(spouseValue)}`;
+}
+
 // Calculates one projection year's expenses. Inputs are assumed to be given in
 // today's (primary's current age) dollars; when not showing "today's dollars",
 // they're inflated up to that year's nominal amount using yearsFromToday, which
@@ -289,11 +299,12 @@ function calculateExpenseYear(yearIndex, context) {
         // Marks the primary as presumed deceased for the Age column's dagger marker.
         isWidowed: context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge,
         common: common * inflationFactor,
-        primaryPreMedicare: primaryPreMedicare * inflationFactor,
-        spousePreMedicare: spousePreMedicare * inflationFactor,
-        primaryMedicare: primaryMedicare * inflationFactor + primaryIrmaaNominal * deflationFactor,
-        spouseMedicare: spouseMedicare * inflationFactor + spouseIrmaaNominal * deflationFactor,
-        irmaaSurcharge: irmaaSurchargeNominal * deflationFactor,
+        // Pre-Medicare and Medicare premium are mutually exclusive per person (age
+        // 65 is the cutover), so they collapse into one figure per person here.
+        primaryMedicalExpense: (primaryPreMedicare + primaryMedicare) * inflationFactor,
+        spouseMedicalExpense: (spousePreMedicare + spouseMedicare) * inflationFactor,
+        primaryIrmaa: primaryIrmaaNominal * deflationFactor,
+        spouseIrmaa: spouseIrmaaNominal * deflationFactor,
         temporaryExpenses: temporaryExpenses.map((value) => value * inflationFactor),
         total,
         totalNominal: rawTotal * nominalFactor + irmaaSurchargeNominal,
@@ -306,17 +317,20 @@ function renderExpenseProjectionTable(rows) {
 
     rows.forEach((row) => {
         const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
+        const medicalCell = formatSplitCell(
+            row.primaryMedicalExpense, row.spouseMedicalExpense, row.hasSpouse, row.isWidowed, formatResultCurrency
+        );
+        const irmaaCell = formatSplitCell(
+            row.primaryIrmaa, row.spouseIrmaa, row.hasSpouse, row.isWidowed, formatResultCurrency
+        );
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${row.year}</td>
             <td>${ageCell}</td>
             <td>${formatResultCurrency(row.common)}</td>
-            <td>${formatResultCurrency(row.primaryPreMedicare)}</td>
-            <td>${formatResultCurrency(row.spousePreMedicare)}</td>
-            <td>${formatResultCurrency(row.primaryMedicare)}</td>
-            <td>${formatResultCurrency(row.spouseMedicare)}</td>
-            <td>${formatResultCurrency(row.irmaaSurcharge)}</td>
+            <td>${medicalCell}</td>
+            <td>${irmaaCell}</td>
             <td>${formatResultCurrency(row.temporaryExpenses[0])}</td>
             <td>${formatResultCurrency(row.temporaryExpenses[1])}</td>
             <td>${formatResultCurrency(row.temporaryExpenses[2])}</td>
