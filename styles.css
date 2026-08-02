@@ -355,6 +355,12 @@ h1 {
     color: #2c3e50;
 }
 
+.projection-table td.rmd-excess-cell {
+    background-color: #fff3cd;
+    color: #8a6100;
+    font-weight: 600;
+}
+
 .link-button {
     background: none;
     border: none;

@@ -535,10 +535,17 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
     let taxableWithdrawal = withdrawFromAccount(accounts.taxable, remaining);
     remaining -= taxableWithdrawal;
 
+    // What traditional would have needed to cover, absent any RMD forcing -- kept
+    // separately so the table can display this instead of the RMD-inflated amount.
+    const traditionalNeedBeforeRmd = remaining;
+
     // The traditional withdrawal must be bumped up to the RMD even if that's more
     // than needed to cover expenses; the unneeded excess is simply left unmodeled
     // as extra cash flow outside the portfolio, like any other income surplus.
     let traditionalWithdrawal = withdrawFromAccount(accounts.traditional, Math.max(remaining, rmdAmount));
+    // Real cash actually pulled for the pre-RMD need, capped by whatever the
+    // account could provide (relevant if the balance ran out mid-withdrawal).
+    let traditionalWithdrawalDisplay = Math.min(traditionalNeedBeforeRmd, traditionalWithdrawal);
     remaining = Math.max(0, remaining - traditionalWithdrawal);
 
     let rothWithdrawal = withdrawFromAccount(accounts.roth, remaining);
@@ -558,6 +565,7 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
 
     taxableWithdrawal += grossUpFromTaxable;
     traditionalWithdrawal += grossUpFromTraditional;
+    traditionalWithdrawalDisplay += grossUpFromTraditional;
     rothWithdrawal += grossUpFromRoth;
     const taxGrossUpWithdrawal = grossUpFromTaxable + grossUpFromTraditional + grossUpFromRoth;
 
@@ -574,6 +582,7 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
         : 0;
     depositToAccount(accounts.roth, rothConversionDeposit);
     traditionalWithdrawal += rothConversionWithdrawal;
+    traditionalWithdrawalDisplay += rothConversionWithdrawal;
 
     // Whatever remains after the withdrawal grows for the rest of the year, so the
     // ending balance reflects a full year of stock/bond returns on the reduced base.
@@ -597,8 +606,15 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
         hasSpouse: context.hasSpouse,
         isWidowed: context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge,
         rmdAmount: rmdAmount * deflationFactor,
+        // Flags years where the RMD forced the real traditional withdrawal (below)
+        // above what's shown in the Traditional column, so the two aren't confused.
+        rmdExceedsShortfall: rmdAmount > traditionalWithdrawalDisplay,
         taxableWithdrawal: taxableWithdrawal * deflationFactor,
-        traditionalWithdrawal: traditionalWithdrawal * deflationFactor,
+        // Deliberately NOT the same as traditionalWithdrawalNominal below when the
+        // RMD forces a bigger real withdrawal -- this shows what would have been
+        // withdrawn for spending/gross-up/conversion alone, so it doesn't just
+        // parrot the RMD figure back; Total/Balance/Tax still use the real amount.
+        traditionalWithdrawal: traditionalWithdrawalDisplay * deflationFactor,
         rothWithdrawal: rothWithdrawal * deflationFactor,
         // Already included in the three withdrawal figures above; broken out here
         // just so it's visible how much of the withdrawal was for taxes vs. spending.
@@ -627,11 +643,15 @@ function renderWithdrawalProjectionTable(rows) {
 
     rows.forEach((row) => {
         const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
+        // Up arrow calls out years where the RMD forced a withdrawal bigger than
+        // expenses actually required (the excess becomes unmodeled surplus cash).
+        const rmdCellClass = row.rmdExceedsShortfall ? ' class="rmd-excess-cell"' : '';
+        const rmdArrow = row.rmdExceedsShortfall ? ' &uarr;' : '';
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${row.year}</td>
             <td>${ageCell}</td>
-            <td>${formatResultCurrency(row.rmdAmount)}</td>
+            <td${rmdCellClass}>${formatResultCurrency(row.rmdAmount)}${rmdArrow}</td>
             <td>${formatResultCurrency(row.taxableWithdrawal)}</td>
             <td>${formatResultCurrency(row.traditionalWithdrawal)}</td>
             <td>${formatResultCurrency(row.rothWithdrawal)}</td>
