@@ -216,6 +216,11 @@ function formatResultCurrency(value) {
     return `$${Math.round(value).toLocaleString()}`;
 }
 
+// Formats a 0-1 fraction as a percentage for read-only result display.
+function formatResultPercent(value) {
+    return `${(value * 100).toFixed(1)}%`;
+}
+
 // Compact single-column Age display shared by all projection tables: just the
 // primary's age when unmarried, "primary / spouse" when married, or "&dagger; /
 // spouse" once the spouse has outlived the primary (widow age reached).
@@ -566,6 +571,9 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
         rmdAmountNominal: rmdAmount,
         taxableWithdrawalNominal: taxableWithdrawal,
         traditionalWithdrawalNominal: traditionalWithdrawal,
+        // Includes Roth (untaxed) too -- needed for the tax projection's effective rate,
+        // which measures total tax against all cash drawn from the portfolio.
+        totalWithdrawalNominal: taxableWithdrawal + traditionalWithdrawal + rothWithdrawal,
     };
 }
 
@@ -804,6 +812,15 @@ function calculateTaxYear(yearIndex, context) {
     const totalTax = federalIncomeTax + niit + stateTax;
     const deflationFactor = context.showTodaysDollars ? 1 / nominalFactor : 1;
 
+    // Marginal rate the next dollar of ordinary income would face (federal only,
+    // ignoring state/NIIT); effective rate is total tax against all cash actually
+    // received this year -- annuity, all Social Security, and every withdrawal
+    // source including untaxed Roth -- both computed in nominal terms so the
+    // ratio is unaffected by the today's-dollars display toggle.
+    const marginalFederalRate = findMarginalRate(ordinaryTaxable, federalBrackets);
+    const totalIncomeNominal = context.annuityNominal + context.socialSecurityNominal + context.totalWithdrawalNominal;
+    const effectiveTaxRate = totalIncomeNominal > 0 ? totalTax / totalIncomeNominal : 0;
+
     return {
         year: yearIndex,
         primaryAge,
@@ -829,6 +846,8 @@ function calculateTaxYear(yearIndex, context) {
         niit: niit * deflationFactor,
         stateTax: stateTax * deflationFactor,
         totalTax: totalTax * deflationFactor,
+        marginalFederalRate,
+        effectiveTaxRate,
         // Already nominal -- needed by the withdrawal gross-up regardless of display mode.
         totalTaxNominal: totalTax,
     };
@@ -853,6 +872,8 @@ function renderTaxProjectionTable(rows) {
             <td>${formatResultCurrency(row.niit)}</td>
             <td>${formatResultCurrency(row.stateTax)}</td>
             <td class="total-cell">${formatResultCurrency(row.totalTax)}</td>
+            <td>${formatResultPercent(row.marginalFederalRate)}</td>
+            <td>${formatResultPercent(row.effectiveTaxRate)}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -1061,6 +1082,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
             ...taxContextBase,
             traditionalWithdrawalNominal: withdrawalRow.traditionalWithdrawalNominal,
             taxableWithdrawalNominal: withdrawalRow.taxableWithdrawalNominal,
+            totalWithdrawalNominal: withdrawalRow.totalWithdrawalNominal,
             annuityNominal,
             socialSecurityNominal,
         });
