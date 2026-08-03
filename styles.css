@@ -643,3 +643,21 @@ dialog#advanced-stock-returns-modal::backdrop {
     color: #888;
     cursor: not-allowed;
 }
+
+.copyright-notice {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.copyright-notice a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.copyright-notice a:hover {
+    text-decoration: underline;
+}
