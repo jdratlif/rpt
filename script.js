@@ -1106,8 +1106,12 @@ function calculateTaxYear(yearIndex, context) {
     if (filingStatus === 'mfj') {
         seniorDeduction += (primaryAge >= 65 ? context.seniorDeductionMfj : 0) +
             (spouseAge >= 65 ? context.seniorDeductionMfj : 0);
-    } else if (spouseAge >= 65) {
-        seniorDeduction += context.seniorDeductionSingle;
+    } else if (filingStatus === 'single') {
+        // For Single filers (including widowed spouses), check the primary's age
+        // unless the spouse has reached widow age, in which case check spouse's age.
+        seniorDeduction += (isWidowed ? spouseAge : primaryAge) >= 65
+            ? context.seniorDeductionSingle
+            : 0;
     }
     const standardDeduction =
         ((filingStatus === 'mfj' ? context.standardDeductionMfj : context.standardDeductionSingle) + seniorDeduction) *
