@@ -7,6 +7,37 @@
 > **planning and entertainment purposes only**. Always consult a qualified
 > financial professional before making personal financial decisions.
 
+- [Retirement Projection Tool](#retirement-projection-tool)
+  - [What it does](#what-it-does)
+  - [Usage](#usage)
+  - [Frequently Asked Questions](#frequently-asked-questions)
+    - [What is the point of this thing?](#what-is-the-point-of-this-thing)
+    - [After a withdrawal, it says the balance of that part of my portfolio (e.g. taxable) is $0, but it didn't withdraw all the money. Why?](#after-a-withdrawal-it-says-the-balance-of-that-part-of-my-portfolio-eg-taxable-is-0-but-it-didnt-withdraw-all-the-money-why)
+    - [How are payroll taxes calculated?](#how-are-payroll-taxes-calculated)
+    - [How does the Gross-Up Function estimate additional withdrawals required to account for taxes?](#how-does-the-gross-up-function-estimate-additional-withdrawals-required-to-account-for-taxes)
+    - [How are taxes calculated on taxable brokerage account withdrawals?](#how-are-taxes-calculated-on-taxable-brokerage-account-withdrawals)
+    - [What about cash savings?](#what-about-cash-savings)
+    - [How are portfolio returns calculated?](#how-are-portfolio-returns-calculated)
+    - [What do the Generate Bad Sequence and Generate Good Sequence buttons do in the Advanced Stock Returns dialog?](#what-do-the-generate-bad-sequence-and-generate-good-sequence-buttons-do-in-the-advanced-stock-returns-dialog)
+    - [What if I have pension income?](#what-if-i-have-pension-income)
+    - [Is the annuity income adjusted for inflation?](#is-the-annuity-income-adjusted-for-inflation)
+    - [What if my pension income is adjusted for inflation?](#what-if-my-pension-income-is-adjusted-for-inflation)
+    - [What are RMDs?](#what-are-rmds)
+    - [What is IRMAA?](#what-is-irmaa)
+    - [Does this tool show the impact of the widow's penalty?](#does-this-tool-show-the-impact-of-the-widows-penalty)
+    - [Why are the XYZ expenses so low? No one can live on that! Medical alone is like $15,000/year!](#why-are-the-xyz-expenses-so-low-no-one-can-live-on-that-medical-alone-is-like-15000year)
+    - [What are the temporary expenses for?](#what-are-the-temporary-expenses-for)
+    - [How are the temporary expenses different from the one time expenses?](#how-are-the-temporary-expenses-different-from-the-one-time-expenses)
+    - [The government has to raise taxes to pay off the debt. Why are you assuming tax rates will be the same?](#the-government-has-to-raise-taxes-to-pay-off-the-debt-why-are-you-assuming-tax-rates-will-be-the-same)
+    - [What does the "Show in Today's Dollars" checkbox do?](#what-does-the-show-in-todays-dollars-checkbox-do)
+    - [Why do all these retirement scenarios assume you're married? What about the single people?](#why-do-all-these-retirement-scenarios-assume-youre-married-what-about-the-single-people)
+    - [Why are some of the RMD values in the Portfolio projection table highlighted with an arrow?](#why-are-some-of-the-rmd-values-in-the-portfolio-projection-table-highlighted-with-an-arrow)
+    - [What is NIIT?](#what-is-niit)
+    - [How are state taxes calculated?](#how-are-state-taxes-calculated)
+    - [Can I copy this to my website? It's free right?](#can-i-copy-this-to-my-website-its-free-right)
+  - [Technology](#technology)
+  - [License](#license)
+
 A browser-based retirement scenario projector. It models how a portfolio might
 behave across pre-retirement, retirement, and widowhood by combining accounts,
 income, expenses, taxes, and user-controlled assumptions.
@@ -56,6 +87,174 @@ browser; no data is sent to a server.
 It is also hosted on [GitHub](https://jdratlif.github.io/rpt/).
 
 You can save a user preset to your browser's local storage and reload it later.
+
+## Frequently Asked Questions
+
+### What is the point of this thing?
+
+I spend a a lot of time watching retirement YouTube channels and thinking about retirement and investing.
+
+All the retirement calculators on the internet are very basic.
+If a channel has a cool spreadsheet, even if they say it's free, they want you to sign up for a newsletter at a mininum.
+Often they want you to buy their course.
+
+After reading a million YouTube comments, I saw recurring themes and concerns people had.
+People are really worried about RMDs, IRMAA, and the widow's penalty.
+They didn't seem as impactful as people said they were.
+So I decided to write a calculator based on what I've learned on YouTube.
+
+Along the way, I added a bunch more features based on things that were either personally applicable to me, or things I've seen in YouTube videos and comments.
+
+### After a withdrawal, it says the balance of that part of my portfolio (e.g. taxable) is $0, but it didn't withdraw all the money. Why?
+
+It will do this when showing in real (e.g. Today's) dollars because it accounted for inflation.
+When showing future (e.g. nominal) dollars, the values will match exactly.
+
+### How are payroll taxes calculated?
+
+For other income, the tool assumes this is standard W-2 income and uses 7.65%.
+Payroll taxes are not applied to Social Security, Annuity/Pension, or non-Roth portfolio withdrawals.
+
+### How does the Gross-Up Function estimate additional withdrawals required to account for taxes?
+
+It estimates the taxes that would be owed for all income sources required to satisfy expenses for the year.
+It calculates an effective rate of tax based on the amount, and adds this amount as an additional portfolio withdrawal.
+It does not act recursively, and is a rough estimate.
+
+### How are taxes calculated on taxable brokerage account withdrawals?
+
+In the rates section, there is a taxable basis input (20% by default).
+It assumes all withdrawals are subject to long term capital gains rates and applies tax to the non-basis percentage.
+So if your LTCG rate is 15%, you withdraw $10,000 from taxable, and your basis % is 20%, your tax is $1200.
+(10000 \* (100% - 20%) \* 15% = 1200).
+
+### What about cash savings?
+
+Include all fixed income assets in the bond portioin of your portfolio.
+They all work similarly enough that separating them out didn't seem worth it.
+
+### How are portfolio returns calculated?
+
+The current balance of your portfolio is separated into stocks and bonds by percentage weight from the portfolio tab.
+Bonds are flatly increased by the bond percentage each year.
+By default, stocks are also flatly increased by the stock percentage each year.
+If you select 'Use Advanced Stock Returns', you can set the percentage return on a per-year basis to simulate any sequence of returns you want to model.
+
+### What do the Generate Bad Sequence and Generate Good Sequence buttons do in the Advanced Stock Returns dialog?
+
+They change the returns to drop or raise by about 45% in the first 5 years, recovering over the next 5, and flattening to the stock percentage for all other years.
+
+### What if I have pension income?
+
+Use the annuity income section.
+
+### Is the annuity income adjusted for inflation?
+
+No. I've never had an annuity, but my understanding is that most do not have an inflation rider.
+
+### What if my pension income is adjusted for inflation?
+
+Well, I hadn't considered that. Maybe I'll add it, or maybe you can submit a pull request.
+
+### What are RMDs?
+
+Required Minimum Distributions.
+The government mandates that you withdraw a certain percentage of your pre-tax accounts every year once you reach a certain age (73 for most people) whether you want it or not.
+This can increase taxes for people later in life if they have large pre-tax balances.
+
+### What is IRMAA?
+
+Income Related Monthly Adjustment Amount.
+It's an additional medicare premium for high earners based on their income from 2 years prior.
+
+### Does this tool show the impact of the widow's penalty?
+
+Yes.
+If you checked Married in the Ages section and set a widow age, the primary will be considered to have died the year the spouse reaches the widow age.
+In all of the projection tables under Ages, when the spouse is a widow, you will see a grave marker for the primary.
+On the taxes projection, you will see filing status change from MFJ ro Single.
+You can see how the marginal and effective tax rates for that year differ from the previous year.
+This has been dubbed the widow's penalty, because you probably have similar income, but in the smaller single tax brackets.
+In the default scenario, the primary passes away when the spouse is 78, the marginal rate goes from 12->22%, and the effective rate jumps from 8.6%->12.1%.
+
+### Why are the XYZ expenses so low? No one can live on that! Medical alone is like $15,000/year!
+
+I based the default scenario off my experiences living in southern Indiana, a lower cost of living area.
+Pre-medicare expenses are based on ACA marketplace plans with tax subsidies for lower income people.
+Medicare expenses are based on the current part B premium and the average for part D.
+If this doesn't fit your life, you should change the values to fit your scenario.
+This calculator is just trying to give reasonable estimates based on a large number of assumptions.
+
+### What are the temporary expenses for?
+
+The idea is to put your expense floor in the monthly expenses.
+These are the things you need just to live (e.g. housing, food, transportation).
+Some expenses are temporary.
+You may be paying off a mortgage or car loan.
+Once the mortgage is paid off, you still have property taxes, insurance and maintenance, so maybe you put that in general and put the non-escrow portion as a temporary expense.
+You might want to account for a larger travel budget early in retirement when you're more healthy.
+It's basically to get a better estimate of expenses, which are almost certainly not fixed for 30+ years.
+
+### How are the temporary expenses different from the one time expenses?
+
+The idea is for these to be big ticket items that you think will be needed.
+A new roof for the house, new vehicle(s), new HVAC system, or an amazing bucket list vacation.
+
+### The government has to raise taxes to pay off the debt. Why are you assuming tax rates will be the same?
+
+I'm going with the only information I have right now, which is the current tax rates as of 2026.
+The program automatically inflates the brackets, but that's all it does.
+If you think taxes will be higher in the future, you can edit the tax tables in the rates section.
+
+### What does the "Show in Today's Dollars" checkbox do?
+
+It calculates the effect of inflation on dollar amounts in the portfolio, other income sources, and expenses.
+Expenses are increased by inflation each year.
+Portfolio gains are offset by inflation (i.e. 7% gains - 3% inflation = 4% real growth).
+Social Security and Other Income are increased by inflation, but annuity/pension income is not.
+It's easier to understand the numbers in terms of today's dollars, because you know what things cost right now.
+
+### Why do all these retirement scenarios assume you're married? What about the single people?
+
+Just uncheck the Married checkbox and you can calculate the effects of retiring single.
+
+### Why are some of the RMD values in the Portfolio projection table highlighted with an arrow?
+
+This means the RMD exceeded what you would have needed to withdraw to cover expenses.
+If your RMD was $25,000, but you only needed $10,000 to cover expenses, it would be highlighted to indicate that.
+
+### What is NIIT?
+
+Net Investment Income Tax.
+It's a tax for people who are rich.
+I'm not rich so I have no idea how it works.
+AI asked if I wanted to figure it in, and I said okay.
+I'm pretty sure it only applies to taxable brokerage accounts.
+
+### How are state taxes calculated?
+
+It's a flat rate defaulting to 5% (because that's what I pay in Indiana).
+You can change it in the Rates section by clicking 'Edit Tax Tables (Advanced)'.
+There's a box for whether SS is taxed, which is calculated as the same amount that would be taxed federally.
+I'm sure there are more complicated tax systems in some states, but I think it's good enough for an internet calculator.
+
+### Can I copy this to my website? It's free right?
+
+I'd prefer you didn't.
+I spend a lot of time on retirement YouTube, reading the comments, and thinking about what matters for retirement projections.
+I've seen a lot of other calculators, and they're always very basic.
+To go beyond that, you have to pay for Boldin or Projection Lab, and they're pretty complicated.
+I wanted a middle ground, and although AI wrote all the code, I designed it.
+I'd like there to be one place for this.
+If you want a feature that doesn't exist, make a pull request and everyone can benefit.
+It's licensed under the Creative Commons, so as long as you credit me and don't sell it (which includes putting it on a webpage with ads), you can do that.
+I like open source, but I really don't want 20 versions of this in different states.
+It's on public github.
+I released it to the public.
+It's not going anywhere.
+If you're worried I'll change my mind, feel free to fork it or clone it or back it up.
+But please don't put this on your website, take my name off, and put a bunch of ads.
+I can't stop you, but you're a bad person if you do that.
 
 ## Technology
 
