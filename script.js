@@ -95,6 +95,7 @@ const SPOUSE_ONLY_INPUT_IDS = [
     'widow-age', 'spouse-current-age', 'spouse-social-security-age', 'spouse-annuity-age',
     'social-security-secondary-benefit', 'annuity-secondary-income', 'pre-medicare-expenses-spouse',
     'spouse-other-income-start-age', 'spouse-other-income-stop-age', 'other-income-secondary-amount',
+    'annuitized-spouse-auto-amount', 'annuitized-spouse-auto-end-age',
 ];
 
 function updateSpouseInputsDisabled() {
@@ -686,12 +687,32 @@ function calculateExpenseYear(yearIndex, context) {
         (expense.age > 0 && primaryAge === expense.age) ? expense.amount : 0
     );
 
+    // Annuitized expenses start at retirement and run until the relevant person's
+    // end age. They are fixed nominal payments (no inflation adjustment), so real
+    // display values are deflated just like annuity income.
+    const annuitized = context.annuitizedExpenses || {};
+    let mortgageExpense = 0;
+    if (annuitized.mortgage && primaryAge <= annuitized.mortgage.endAge) {
+        mortgageExpense = annuitized.mortgage.amount * 12;
+    }
+    let primaryAutoExpense = 0;
+    if (annuitized.primaryAuto && primaryAge <= annuitized.primaryAuto.endAge) {
+        primaryAutoExpense = annuitized.primaryAuto.amount * 12;
+    }
+    let spouseAutoExpense = 0;
+    if (context.hasSpouse && annuitized.spouseAuto && primaryAge <= annuitized.spouseAuto.endAge) {
+        spouseAutoExpense = annuitized.spouseAuto.amount * 12;
+    }
+    const annuitizedTotalNominal = mortgageExpense + primaryAutoExpense + spouseAutoExpense;
+
     // Primary is assumed deceased once the spouse reaches widow age, so his own
     // Medicare/pre-Medicare costs stop (the spouse's are unaffected). Only
     // applicable when there's actually a spouse to survive him.
     if (context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge) {
         primaryPreMedicare = 0;
         primaryMedicare = 0;
+        mortgageExpense = 0;
+        primaryAutoExpense = 0;
     }
 
     const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
@@ -717,7 +738,8 @@ function calculateExpenseYear(yearIndex, context) {
     const rawTotal = common + primaryPreMedicare + spousePreMedicare + primaryMedicare + spouseMedicare +
         temporaryExpenses.reduce((sum, value) => sum + value, 0) +
         oneTimeExpenses.reduce((sum, value) => sum + value, 0);
-    const total = rawTotal * inflationFactor + irmaaSurchargeNominal * deflationFactor;
+    const total = rawTotal * inflationFactor + annuitizedTotalNominal * deflationFactor +
+        irmaaSurchargeNominal * deflationFactor;
 
     return {
         year: yearIndex,
@@ -735,8 +757,9 @@ function calculateExpenseYear(yearIndex, context) {
         spouseIrmaa: spouseIrmaaNominal * deflationFactor,
         temporaryExpenses: temporaryExpenses.map((value) => value * inflationFactor),
         oneTimeExpenses: oneTimeExpenses.map((value) => value * inflationFactor),
+        annuitized: annuitizedTotalNominal * deflationFactor,
         total,
-        totalNominal: rawTotal * nominalFactor + irmaaSurchargeNominal,
+        totalNominal: rawTotal * nominalFactor + annuitizedTotalNominal + irmaaSurchargeNominal,
     };
 }
 
@@ -756,6 +779,7 @@ function renderExpenseProjectionTable(rows) {
         // expenses is now variable (users can add/remove rows).
         const temporaryCell = formatResultCurrency(row.temporaryExpenses.reduce((sum, value) => sum + value, 0));
         const oneTimeCell = formatResultCurrency(row.oneTimeExpenses.reduce((sum, value) => sum + value, 0));
+        const annuitizedCell = formatResultCurrency(row.annuitized);
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -766,6 +790,7 @@ function renderExpenseProjectionTable(rows) {
             <td>${irmaaCell}</td>
             <td>${temporaryCell}</td>
             <td>${oneTimeCell}</td>
+            <td>${annuitizedCell}</td>
             <td class="total-cell">${formatResultCurrency(row.total)}</td>
         `;
         tbody.appendChild(tr);
@@ -1528,6 +1553,20 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         primaryPreMedicareExpenses: parseCurrencyInput(document.getElementById('pre-medicare-expenses-primary')),
         spousePreMedicareExpenses: parseCurrencyInput(document.getElementById('pre-medicare-expenses-spouse')),
         medicarePartBPremium: parseCurrencyInput(document.getElementById('medicare-part-b-premium')),
+        annuitizedExpenses: {
+            mortgage: {
+                amount: parseCurrencyInput(document.getElementById('annuitized-mortgage-amount')),
+                endAge: parseFloat(document.getElementById('annuitized-mortgage-end-age').value) || 0,
+            },
+            primaryAuto: {
+                amount: parseCurrencyInput(document.getElementById('annuitized-primary-auto-amount')),
+                endAge: parseFloat(document.getElementById('annuitized-primary-auto-end-age').value) || 0,
+            },
+            spouseAuto: {
+                amount: parseCurrencyInput(document.getElementById('annuitized-spouse-auto-amount')),
+                endAge: parseFloat(document.getElementById('annuitized-spouse-auto-end-age').value) || 0,
+            },
+        },
         temporaryExpenses: readExpenseRows('temporary-expenses-list', (num) => ({
             startAge: parseFloat(document.getElementById(`temporary-expense-${num}-start-age`).value) || 0,
             endAge: parseFloat(document.getElementById(`temporary-expense-${num}-end-age`).value) || 0,

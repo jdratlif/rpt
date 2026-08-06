@@ -65,6 +65,20 @@ h1 {
     max-width: none;
 }
 
+/* Annuitized expense rows sit inside a parent .input-group, so remove the
+   extra bottom margin and label spacing on the nested row to keep rows tight. */
+.top-input-grid.horizontal.annuitized-row {
+    gap: 15px;
+}
+
+.top-input-grid.horizontal.annuitized-row .input-group {
+    margin-bottom: 0;
+}
+
+.top-input-grid.horizontal.annuitized-row .input-group label {
+    font-size: 0.9rem;
+}
+
 .top-person-column {
     display: flex;
     flex-direction: column;
@@ -563,13 +577,15 @@ h1 {
 #expense-projection-table th:nth-child(6),
 #expense-projection-table td:nth-child(6),
 #expense-projection-table th:nth-child(7),
-#expense-projection-table td:nth-child(7) {
-    width: 18%;
-}
-
+#expense-projection-table td:nth-child(7),
 #expense-projection-table th:nth-child(8),
 #expense-projection-table td:nth-child(8) {
     width: 14%;
+}
+
+#expense-projection-table th:nth-child(9),
+#expense-projection-table td:nth-child(9) {
+    width: 12%;
 }
 
 .link-button {
@@ -682,7 +698,8 @@ dialog#advanced-stock-returns-modal::backdrop {
 }
 
 .currency-input-wrapper input:disabled,
-.percent-input-wrapper input:disabled {
+.percent-input-wrapper input:disabled,
+input[type="number"]:disabled {
     background-color: #eee;
     color: #888;
     cursor: not-allowed;

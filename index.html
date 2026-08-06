@@ -547,7 +547,7 @@
                                     </div>
                                 </div>
                                 <div class="input-group">
-                                    <label for="social-security-secondary-benefit">Secondary
+                                    <label for="social-security-secondary-benefit">Spouse
                                         <span class="tooltip">
                                             ?
                                             <span class="tooltip-text">Expected monthly Social Security retirement
@@ -585,7 +585,7 @@
                                     </div>
                                 </div>
                                 <div class="input-group">
-                                    <label for="annuity-secondary-income">Secondary
+                                    <label for="annuity-secondary-income">Spouse
                                         <span class="tooltip">
                                             ?
                                             <span class="tooltip-text">Monthly annuity/pension income for the secondary
@@ -621,7 +621,7 @@
                                     </div>
                                 </div>
                                 <div class="input-group">
-                                    <label for="other-income-secondary-amount">Secondary
+                                    <label for="other-income-secondary-amount">Spouse
                                         <span class="tooltip">
                                             ?
                                             <span class="tooltip-text">Monthly part-time/side-hustle income for the
@@ -712,6 +712,117 @@
                                         <input type="text" inputmode="decimal" class="currency-input"
                                             id="medicare-part-b-premium" name="medicare-part-b-premium" value="235"
                                             placeholder="e.g., 202.90" />
+                                    </div>
+                                </div>
+                                <h3 class="person-title">Annuitized
+                                    <span class="tooltip">
+                                        ?
+                                        <span class="tooltip-text">Fixed payment obligations that begin at retirement
+                                            and stop at a set age (no inflation adjustment; real value declines over
+                                            time).</span>
+                                    </span>
+                                </h3>
+                                <div class="input-group">
+                                    <div class="top-input-grid horizontal annuitized-row">
+                                        <div class="input-group">
+                                            <label for="annuitized-mortgage-amount">Mortgage
+                                                <span class="tooltip">
+                                                    ?
+                                                    <span class="tooltip-text">Monthly mortgage payment ending when the
+                                                        primary
+                                                        reaches the specified age. Enter 0 if the mortgage will be paid
+                                                        off
+                                                        before retirement.</span>
+                                                </span>
+                                            </label>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="annuitized-mortgage-amount" name="annuitized-mortgage-amount"
+                                                    value="0" placeholder="e.g., 1,200" />
+                                            </div>
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="annuitized-mortgage-end-age">End Age
+                                                <span class="tooltip">
+                                                    ?
+                                                    <span class="tooltip-text">Age at which the mortgage is paid off and
+                                                        the payment stops</span>
+                                                </span>
+                                            </label>
+                                            <input type="number" id="annuitized-mortgage-end-age"
+                                                name="annuitized-mortgage-end-age" min="1" max="120" value="75"
+                                                placeholder="e.g., 75" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <div class="top-input-grid horizontal annuitized-row">
+                                        <div class="input-group">
+                                            <label for="annuitized-primary-auto-amount">Primary Auto Loan
+                                                <span class="tooltip">
+                                                    ?
+                                                    <span class="tooltip-text">Monthly auto loan payment ending when the
+                                                        primary
+                                                        reaches the specified age.</span>
+                                                </span>
+                                            </label>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="annuitized-primary-auto-amount"
+                                                    name="annuitized-primary-auto-amount" value="0"
+                                                    placeholder="e.g., 500" />
+                                            </div>
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="annuitized-primary-auto-end-age">End Age
+                                                <span class="tooltip">
+                                                    ?
+                                                    <span class="tooltip-text">Age at which the primary auto loan is
+                                                        paid
+                                                        off and the payment stops</span>
+                                                </span>
+                                            </label>
+                                            <input type="number" id="annuitized-primary-auto-end-age"
+                                                name="annuitized-primary-auto-end-age" min="1" max="120" value="65"
+                                                placeholder="e.g., 65" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <div class="top-input-grid horizontal annuitized-row">
+                                        <div class="input-group">
+                                            <label for="annuitized-spouse-auto-amount">Spouse Auto Loan
+                                                <span class="tooltip">
+                                                    ?
+                                                    <span class="tooltip-text">Monthly auto loan payment ending when the
+                                                        spouse
+                                                        reaches the specified age. Ignored when no spouse is
+                                                        selected.</span>
+                                                </span>
+                                            </label>
+                                            <div class="currency-input-wrapper">
+                                                <span class="currency-symbol">$</span>
+                                                <input type="text" inputmode="decimal" class="currency-input"
+                                                    id="annuitized-spouse-auto-amount"
+                                                    name="annuitized-spouse-auto-amount" value="0"
+                                                    placeholder="e.g., 500" />
+                                            </div>
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="annuitized-spouse-auto-end-age">End Age
+                                                <span class="tooltip">
+                                                    ?
+                                                    <span class="tooltip-text">Age at which the spouse auto loan is paid
+                                                        off and the payment stops (Primary User's age, not
+                                                        Spouse)</span>
+                                                </span>
+                                            </label>
+                                            <input type="number" id="annuitized-spouse-auto-end-age"
+                                                name="annuitized-spouse-auto-end-age" min="1" max="120" value="65"
+                                                placeholder="e.g., 65" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -903,6 +1014,7 @@
                                         <th>IRMAA</th>
                                         <th>Temporary</th>
                                         <th>One Time</th>
+                                        <th>Annuitized</th>
                                         <th>Total</th>
                                     </tr>
                                 </thead>
