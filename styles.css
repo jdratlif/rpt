@@ -167,6 +167,50 @@ h1 {
     margin-bottom: 15px;
 }
 
+/* Mirrors .input-group / .input-group label's box shape (label line, then
+   control) so the +/- buttons land on the same line as the other fields'
+   inputs under ordinary top-aligned flex layout, instead of fighting the flex
+   cross-axis alignment with no label of their own. */
+.expense-row-actions {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+    flex: 0 0 auto;
+}
+
+.expense-row-actions-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #555;
+}
+
+.expense-row-actions-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.expense-row-btn {
+    width: 32px;
+    height: 42px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.expense-row-btn:hover:not(:disabled) {
+    background-color: #e0e0e0;
+}
+
+.expense-row-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 .expense-row-label {
     font-weight: 600;
     color: #2c3e50;

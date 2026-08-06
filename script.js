@@ -25,18 +25,22 @@ function parseCurrencyInput(input) {
     return raw === '' ? 0 : parseFloat(raw);
 }
 
-document.querySelectorAll('.currency-input').forEach((input) => {
+// Formats a currency input on load and keeps it formatted as the user types,
+// preserving cursor position relative to the end of the value so typing/deleting
+// in the middle of a number doesn't jump the caret. Shared by the static inputs
+// below and any currency input added later by the dynamic expense-row lists.
+function attachCurrencyInputBehavior(input) {
     formatCurrencyInput(input);
-
     input.addEventListener('input', () => {
-        // Preserve cursor position relative to the end of the value so
-        // typing/deleting in the middle of a number doesn't jump the caret.
         const distanceFromEnd = input.value.length - input.selectionStart;
         formatCurrencyInput(input);
         const newPos = input.value.length - distanceFromEnd;
         input.setSelectionRange(newPos, newPos);
     });
-});
+}
+
+document.querySelectorAll('.currency-input').forEach(attachCurrencyInputBehavior);
+
 
 // Strips a percent input down to digits and a single decimal point.
 function formatPercentInput(input) {
@@ -103,10 +107,148 @@ function updateSpouseInputsDisabled() {
 document.getElementById('has-spouse').addEventListener('change', updateSpouseInputsDisabled);
 updateSpouseInputsDisabled();
 
+// Field definitions for the two dynamic expense-row lists (Temporary and One Time
+// expenses in the Expenses tab). Each list starts with a single row; users can
+// add/remove rows via the +/- buttons at the end of each row (see the click
+// delegation set up below), rather than a fixed number of rows.
+const TEMPORARY_EXPENSE_FIELDS = [
+    { suffix: 'start-age', label: 'Start Age', tooltip: 'Age at which this temporary expense begins', type: 'age', defaultValue: '60' },
+    { suffix: 'end-age', label: 'End Age', tooltip: 'Age at which this temporary expense ends', type: 'age', defaultValue: '75' },
+    { suffix: 'amount', label: 'Monthly', tooltip: 'Monthly amount for this temporary expense. Set to 0 if not applicable.', type: 'currency', defaultValue: '0' },
+];
+const ONE_TIME_EXPENSE_FIELDS = [
+    { suffix: 'age', label: 'Age', tooltip: 'Age of the primary when this one-time expense occurs', type: 'age', defaultValue: '60' },
+    { suffix: 'amount', label: 'Annual', tooltip: 'Total amount for this one-time expense. Set to 0 if not applicable.', type: 'currency', defaultValue: '0' },
+];
+const EXPENSE_ROW_LISTS = {
+    'temporary-expenses-list': {
+        idPrefix: 'temporary-expense', fields: TEMPORARY_EXPENSE_FIELDS,
+        addLabel: 'Add temporary expense', removeLabel: 'Remove temporary expense',
+    },
+    'one-time-expenses-list': {
+        idPrefix: 'one-time-expense', fields: ONE_TIME_EXPENSE_FIELDS,
+        addLabel: 'Add one-time expense', removeLabel: 'Remove one-time expense',
+    },
+};
+
+function buildExpenseFieldHtml(idPrefix, rowNumber, field) {
+    const id = `${idPrefix}-${rowNumber}-${field.suffix}`;
+    if (field.type === 'currency') {
+        return `
+            <div class="input-group">
+                <label for="${id}">${field.label}
+                    <span class="tooltip">?<span class="tooltip-text">${field.tooltip}</span></span>
+                </label>
+                <div class="currency-input-wrapper">
+                    <span class="currency-symbol">$</span>
+                    <input type="text" inputmode="decimal" class="currency-input" id="${id}" name="${id}"
+                        value="${field.defaultValue}" placeholder="e.g., 0" />
+                </div>
+            </div>`;
+    }
+    return `
+        <div class="input-group">
+            <label for="${id}">${field.label}
+                <span class="tooltip">?<span class="tooltip-text">${field.tooltip}</span></span>
+            </label>
+            <input type="number" id="${id}" name="${id}" min="1" max="120" value="${field.defaultValue}"
+                placeholder="e.g., ${field.defaultValue}" />
+        </div>`;
+}
+
+function buildExpenseRowHtml(config, rowNumber) {
+    const fieldsHtml = config.fields.map((field) => buildExpenseFieldHtml(config.idPrefix, rowNumber, field)).join('');
+    return `
+        <div class="expense-row">
+            <div class="expense-row-label">Expense ${rowNumber}</div>
+            <div class="top-input-grid horizontal">
+                ${fieldsHtml}
+                <div class="expense-row-actions">
+                    <span class="expense-row-actions-label">Actions</span>
+                    <div class="expense-row-actions-buttons">
+                        <button type="button" class="expense-row-btn expense-row-add"
+                            aria-label="${config.addLabel}">+</button>
+                        <button type="button" class="expense-row-btn expense-row-remove"
+                            aria-label="${config.removeLabel}">&minus;</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+}
+
+function createExpenseRowElement(config, rowNumber) {
+    const template = document.createElement('template');
+    template.innerHTML = buildExpenseRowHtml(config, rowNumber).trim();
+    const rowElement = template.content.firstElementChild;
+    rowElement.querySelectorAll('.currency-input').forEach(attachCurrencyInputBehavior);
+    return rowElement;
+}
+
+// Keeps each row's "Expense N" label and field ids/names/label-for sequential
+// (1..count) after any add/remove, and disables the remove button on the only
+// remaining row so at least one row always stays.
+function renumberExpenseRows(containerId) {
+    const config = EXPENSE_ROW_LISTS[containerId];
+    const rows = Array.from(document.getElementById(containerId).children);
+    rows.forEach((row, index) => {
+        const rowNumber = index + 1;
+        row.querySelector('.expense-row-label').textContent = `Expense ${rowNumber}`;
+        row.querySelectorAll('.input-group').forEach((group, fieldIndex) => {
+            const field = config.fields[fieldIndex];
+            const id = `${config.idPrefix}-${rowNumber}-${field.suffix}`;
+            group.querySelector('label').setAttribute('for', id);
+            const input = group.querySelector('input');
+            input.id = id;
+            input.name = id;
+        });
+        row.querySelector('.expense-row-remove').disabled = rows.length <= 1;
+    });
+}
+
+// Rebuilds a list down to exactly `count` rows -- used by Load Defaults and preset
+// loading, since the saved/default row count may differ from what's currently
+// in the DOM (rows may have been added/removed since).
+function setExpenseRowCount(containerId, count) {
+    const config = EXPENSE_ROW_LISTS[containerId];
+    const container = document.getElementById(containerId);
+    const targetCount = Math.max(1, count);
+    while (container.children.length > targetCount) {
+        container.lastElementChild.remove();
+    }
+    while (container.children.length < targetCount) {
+        container.appendChild(createExpenseRowElement(config, container.children.length + 1));
+    }
+    renumberExpenseRows(containerId);
+}
+
+// Reads however many rows currently exist in a dynamic expense-row list, rather
+// than a hardcoded count, since rows can be added/removed by the user.
+function readExpenseRows(containerId, mapRow) {
+    const rowCount = document.getElementById(containerId).children.length;
+    return Array.from({ length: rowCount }, (_, index) => mapRow(index + 1));
+}
+
+Object.keys(EXPENSE_ROW_LISTS).forEach((containerId) => {
+    document.getElementById(containerId).addEventListener('click', (event) => {
+        const addBtn = event.target.closest('.expense-row-add');
+        const removeBtn = event.target.closest('.expense-row-remove');
+        const container = document.getElementById(containerId);
+        if (addBtn) {
+            const config = EXPENSE_ROW_LISTS[containerId];
+            addBtn.closest('.expense-row').after(createExpenseRowElement(config, container.children.length + 1));
+            renumberExpenseRows(containerId);
+        } else if (removeBtn && container.children.length > 1) {
+            removeBtn.closest('.expense-row').remove();
+            renumberExpenseRows(containerId);
+        }
+    });
+});
+
 // Manually restore each field's original HTML value (defaultValue) instead of using a
 // native reset button, since the browser's "reset" event fires *before* fields are
 // reset, which would reformat stale values instead of the restored defaults.
 document.getElementById('reset-btn').addEventListener('click', () => {
+    Object.keys(EXPENSE_ROW_LISTS).forEach((containerId) => setExpenseRowCount(containerId, 1));
     document.querySelectorAll('#retirement-form input').forEach((input) => {
         if (input.type === 'checkbox') {
             input.checked = input.defaultChecked;
@@ -132,6 +274,13 @@ function collectInputValues() {
             values[input.id] = input.value;
         }
     });
+    // Row counts for the dynamic expense-row lists aren't inputs themselves, so
+    // they're stashed separately -- applyInputValues needs these to rebuild the
+    // right number of rows before it can fill in each row's own field values.
+    values._expenseRowCounts = {};
+    Object.keys(EXPENSE_ROW_LISTS).forEach((containerId) => {
+        values._expenseRowCounts[containerId] = document.getElementById(containerId).children.length;
+    });
     return values;
 }
 
@@ -141,6 +290,10 @@ function applyInputValues(values) {
     if (!values) {
         return;
     }
+    const expenseRowCounts = values._expenseRowCounts || {};
+    Object.keys(EXPENSE_ROW_LISTS).forEach((containerId) => {
+        setExpenseRowCount(containerId, expenseRowCounts[containerId] || 1);
+    });
     document.querySelectorAll('#retirement-form input').forEach((input) => {
         if (!(input.id in values)) {
             return;
@@ -599,8 +752,10 @@ function renderExpenseProjectionTable(rows) {
         const irmaaCell = formatSplitCell(
             row.primaryIrmaa, row.spouseIrmaa, row.hasSpouse, row.isWidowed, formatResultCurrency
         );
-        const temporaryCell = row.temporaryExpenses.map(formatResultCurrency).join(' / ');
-        const oneTimeCell = row.oneTimeExpenses.map(formatResultCurrency).join(' / ');
+        // Summed rather than shown per-item since the number of temporary/one-time
+        // expenses is now variable (users can add/remove rows).
+        const temporaryCell = formatResultCurrency(row.temporaryExpenses.reduce((sum, value) => sum + value, 0));
+        const oneTimeCell = formatResultCurrency(row.oneTimeExpenses.reduce((sum, value) => sum + value, 0));
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -1373,12 +1528,12 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         primaryPreMedicareExpenses: parseCurrencyInput(document.getElementById('pre-medicare-expenses-primary')),
         spousePreMedicareExpenses: parseCurrencyInput(document.getElementById('pre-medicare-expenses-spouse')),
         medicarePartBPremium: parseCurrencyInput(document.getElementById('medicare-part-b-premium')),
-        temporaryExpenses: [1, 2, 3].map((num) => ({
+        temporaryExpenses: readExpenseRows('temporary-expenses-list', (num) => ({
             startAge: parseFloat(document.getElementById(`temporary-expense-${num}-start-age`).value) || 0,
             endAge: parseFloat(document.getElementById(`temporary-expense-${num}-end-age`).value) || 0,
             amount: parseCurrencyInput(document.getElementById(`temporary-expense-${num}-amount`)),
         })),
-        oneTimeExpenses: [1, 2, 3].map((num) => ({
+        oneTimeExpenses: readExpenseRows('one-time-expenses-list', (num) => ({
             age: parseFloat(document.getElementById(`one-time-expense-${num}-age`).value) || 0,
             amount: parseCurrencyInput(document.getElementById(`one-time-expense-${num}-amount`)),
         })),
