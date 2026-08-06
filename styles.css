@@ -445,14 +445,21 @@ h1 {
     color: #555;
 }
 
-.sequence-actions {
+.sequence-inputs {
     display: flex;
+    align-items: flex-end;
     justify-content: center;
     gap: 12px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
-.sequence-actions button {
+.sequence-inputs .input-group {
+    margin-bottom: 0;
+    min-width: 120px;
+}
+
+.sequence-inputs button {
     padding: 10px 20px;
     font-size: 1rem;
     color: white;
@@ -460,22 +467,23 @@ h1 {
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
-}
-
-.bad-sequence-btn {
     background-color: #c0392b;
 }
 
-.bad-sequence-btn:hover {
+.sequence-inputs button:hover {
     background-color: #a93226;
 }
 
-.good-sequence-btn {
+.reset-sequence-btn {
     background-color: #27ae60;
 }
 
-.good-sequence-btn:hover {
+.reset-sequence-btn:hover {
     background-color: #1e8449;
+}
+
+#advanced-stock-returns-modal .actions {
+    flex-direction: row;
 }
 
 #open-advanced-stock-returns-btn:disabled {

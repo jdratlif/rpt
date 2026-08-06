@@ -1154,15 +1154,39 @@
                     <!-- Populated dynamically based on Projection Years. -->
                 </div>
 
-                <div class="sequence-actions">
-                    <button type="button" id="generate-bad-sequence-btn" class="bad-sequence-btn">Generate Bad
-                        Sequence</button>
-                    <button type="button" id="generate-good-sequence-btn" class="good-sequence-btn">Generate Good
+                <div class="sequence-inputs">
+                    <div class="input-group">
+                        <label for="sequence-total-change">Total Change (%)
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Total portfolio change over the sequence (e.g., -40 for a
+                                    40% drop)</span>
+                            </span>
+                        </label>
+                        <div class="percent-input-wrapper">
+                            <input type="text" inputmode="decimal" class="percent-input" id="sequence-total-change"
+                                name="sequence-total-change" value="-40" placeholder="e.g., -40" />
+                            <span class="percent-symbol">%</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="sequence-years">Years
+                            <span class="tooltip">
+                                ?
+                                <span class="tooltip-text">Number of years over which the total change occurs</span>
+                            </span>
+                        </label>
+                        <input type="number" id="sequence-years" name="sequence-years" min="1" value="5"
+                            placeholder="e.g., 5" />
+                    </div>
+                    <button type="button" id="generate-sequence-btn" class="generate-sequence-btn">Generate
                         Sequence</button>
                 </div>
 
                 <div class="actions">
                     <button type="button" class="modal-close">Done</button>
+                    <button type="button" id="reset-advanced-stock-returns-btn"
+                        class="reset-sequence-btn">Reset</button>
                 </div>
             </dialog>
 

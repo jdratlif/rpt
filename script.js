@@ -505,48 +505,75 @@ openAdvancedStockReturnsBtn.addEventListener('click', () => {
     advancedStockReturnsModal.showModal();
 });
 
-// Compute a sequence of returns where the first 5 years are a strong bull/bear
-// run, then the next 5 years bring the 10-year CAGR back to the target stock
-// return %. Remaining years are filled with the target return.
-function generateSequenceOfReturns(isBad) {
+// Builds a non-uniform sequence of annual returns whose compounded effect over
+// `sequenceYears` equals the requested totalChange (e.g. -0.40 for a 40% drop).
+// The sequence is front-loaded: the first year is the largest move, and each
+// subsequent year decays toward zero, then a final small adjustment is applied
+// to exactly hit the target compounded change. Remaining projection years are
+// filled with the default stock return %.
+function generateCustomSequence() {
     const inputs = advancedStockReturnsGrid.querySelectorAll('.advanced-stock-return-input');
     const projectionYears = inputs.length;
     if (projectionYears === 0) {
         return;
     }
 
+    const totalChange = parsePercentInput(document.getElementById('sequence-total-change')) / 100;
+    if (Number.isNaN(totalChange)) {
+        alert('Invalid total change entered.');
+        return;
+    }
+
+    const sequenceYears = Math.max(1, Math.min(projectionYears, parseInt(document.getElementById('sequence-years').value, 10) || 0));
+    if (Number.isNaN(sequenceYears) || sequenceYears <= 0) {
+        alert('Invalid number of years entered.');
+        return;
+    }
+
     const targetReturn = parsePercentInput(document.getElementById('stock-return-percentage')) / 100;
     const values = new Array(projectionYears).fill(targetReturn * 100);
 
-    if (isBad) {
-        // Approximate a -45% compounded loss over 5 years with a steep early decline.
-        values[0] = -26;
-        values[1] = -26;
-        values[2] = 0;
-        values[3] = 0;
-        values[4] = 0;
+    if (sequenceYears === 1) {
+        values[0] = totalChange * 100;
     } else {
-        // Approximate a +45% compounded gain over 5 years with strong early growth.
-        values[0] = 26;
-        values[1] = 26;
-        values[2] = 0;
-        values[3] = 0;
-        values[4] = 0;
+        // Target growth factor over the sequence (e.g. -0.40 => factor 0.60).
+        const targetFactor = 1 + totalChange;
+
+        // Generate a decaying sequence of returns. For a loss, each year is
+        // negative; for a gain, each year is positive. Decay from the first year
+        // toward zero to avoid a uniform percentage.
+        const firstYear = totalChange / sequenceYears * 2.5;
+        const decay = 0.55;
+        const trialReturns = [];
+        let current = firstYear;
+        for (let i = 0; i < sequenceYears; i++) {
+            trialReturns.push(current);
+            current *= decay;
+        }
+
+        // Compute the trial growth factor and apply an equal adjustment to each
+        // year so the final compounded result exactly matches the target.
+        const trialFactor = trialReturns.reduce((product, r) => product * (1 + r), 1);
+        const adjustment = Math.pow(targetFactor / trialFactor, 1 / sequenceYears) - 1;
+        for (let i = 0; i < sequenceYears; i++) {
+            values[i] = (trialReturns[i] + adjustment) * 100;
+        }
     }
 
-    // Compute the actual 5-year growth factor from the chosen first 5 years, then
-    // solve for the uniform return in years 6-10 that makes the 10-year CAGR match
-    // the target stock return.
-    let fiveYearFactor = 1;
-    for (let i = 0; i < 5; i++) {
-        fiveYearFactor *= 1 + values[i] / 100;
-    }
-    const tenYearTargetFactor = Math.pow(1 + targetReturn, 10);
-    const recoveryFactor = tenYearTargetFactor / fiveYearFactor;
-    const recoveryAnnualReturn = (Math.pow(recoveryFactor, 1 / 5) - 1) * 100;
-
-    for (let i = 5; i < 10 && i < projectionYears; i++) {
-        values[i] = recoveryAnnualReturn;
+    // Fill the remaining years with a recovery sequence whose compounded return
+    // brings the full projection's CAGR back to the basic stock return %. This is
+    // computed as a uniform return over the remaining years for stability.
+    const remainingYears = projectionYears - sequenceYears;
+    if (remainingYears > 0) {
+        const fullTargetFactor = Math.pow(1 + targetReturn, projectionYears);
+        const sequenceFactor = values.slice(0, sequenceYears).reduce(
+            (product, r) => product * (1 + r / 100), 1
+        );
+        const recoveryFactor = fullTargetFactor / sequenceFactor;
+        const recoveryReturn = (Math.pow(recoveryFactor, 1 / remainingYears) - 1) * 100;
+        for (let i = sequenceYears; i < projectionYears; i++) {
+            values[i] = recoveryReturn;
+        }
     }
 
     inputs.forEach((input, index) => {
@@ -556,8 +583,15 @@ function generateSequenceOfReturns(isBad) {
     updateAdvancedStockReturnsAverage();
 }
 
-document.getElementById('generate-bad-sequence-btn').addEventListener('click', () => generateSequenceOfReturns(true));
-document.getElementById('generate-good-sequence-btn').addEventListener('click', () => generateSequenceOfReturns(false));
+document.getElementById('generate-sequence-btn').addEventListener('click', generateCustomSequence);
+
+document.getElementById('reset-advanced-stock-returns-btn').addEventListener('click', () => {
+    const defaultReturn = document.getElementById('stock-return-percentage').value;
+    advancedStockReturnsGrid.querySelectorAll('.advanced-stock-return-input').forEach((input) => {
+        input.value = defaultReturn;
+    });
+    updateAdvancedStockReturnsAverage();
+});
 
 document.querySelectorAll('#advanced-stock-returns-modal .modal-close').forEach((button) => {
     button.addEventListener('click', () => advancedStockReturnsModal.close());
