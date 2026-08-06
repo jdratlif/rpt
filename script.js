@@ -837,12 +837,8 @@ function renderExpenseProjectionTable(rows) {
 
     rows.forEach((row) => {
         const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
-        const medicalCell = formatSplitCell(
-            row.primaryMedicalExpense, row.spouseMedicalExpense, row.hasSpouse, row.isWidowed, formatResultCurrency
-        );
-        const irmaaCell = formatSplitCell(
-            row.primaryIrmaa, row.spouseIrmaa, row.hasSpouse, row.isWidowed, formatResultCurrency
-        );
+        const medicalCell = formatResultCurrency(row.primaryMedicalExpense + row.spouseMedicalExpense);
+        const irmaaCell = formatResultCurrency(row.primaryIrmaa + row.spouseIrmaa);
         // Summed rather than shown per-item since the number of temporary/one-time
         // expenses is now variable (users can add/remove rows).
         const temporaryCell = formatResultCurrency(row.temporaryExpenses.reduce((sum, value) => sum + value, 0));
