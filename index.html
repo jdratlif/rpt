@@ -42,7 +42,8 @@
                                         <span class="tooltip-text">Uncheck if you don't have a spouse. Filing status
                                             will be
                                             Single for the entire projection and all Spouse inputs below (age, Social
-                                            Security, annuity, pre-Medicare expenses, Widow Age) are ignored.</span>
+                                            Security, annuity, other income, pre-Medicare expenses, Widow Age) are
+                                            ignored.</span>
                                     </span>
                                 </label>
                             </div>
@@ -129,6 +130,30 @@
                                     <input type="number" id="primary-annuity-age" name="primary-annuity-age" min="1"
                                         max="120" value="67" placeholder="e.g., 62" />
                                 </div>
+                                <div class="input-group">
+                                    <label for="primary-other-income-start-age">Other Income Start Age
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Age at which part-time/side-hustle income
+                                                begins. Set the monthly amount to 0 if not applicable.</span>
+                                        </span>
+                                    </label>
+                                    <input type="number" id="primary-other-income-start-age"
+                                        name="primary-other-income-start-age" min="1" max="120" value="67"
+                                        placeholder="e.g., 67" />
+                                </div>
+                                <div class="input-group">
+                                    <label for="primary-other-income-stop-age">Other Income Stop Age
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Last age at which part-time/side-hustle income
+                                                is received.</span>
+                                        </span>
+                                    </label>
+                                    <input type="number" id="primary-other-income-stop-age"
+                                        name="primary-other-income-stop-age" min="1" max="120" value="72"
+                                        placeholder="e.g., 72" />
+                                </div>
                             </div>
                             <div class="top-person-column spouse">
                                 <h3 class="person-title">Spouse</h3>
@@ -164,6 +189,30 @@
                                     </label>
                                     <input type="number" id="spouse-annuity-age" name="spouse-annuity-age" min="1"
                                         max="120" value="62" placeholder="e.g., 62" />
+                                </div>
+                                <div class="input-group">
+                                    <label for="spouse-other-income-start-age">Other Income Start Age
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Age at which part-time/side-hustle income
+                                                begins. Set the monthly amount to 0 if not applicable.</span>
+                                        </span>
+                                    </label>
+                                    <input type="number" id="spouse-other-income-start-age"
+                                        name="spouse-other-income-start-age" min="1" max="120" value="62"
+                                        placeholder="e.g., 62" />
+                                </div>
+                                <div class="input-group">
+                                    <label for="spouse-other-income-stop-age">Other Income Stop Age
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Last age at which part-time/side-hustle income
+                                                is received.</span>
+                                        </span>
+                                    </label>
+                                    <input type="number" id="spouse-other-income-stop-age"
+                                        name="spouse-other-income-stop-age" min="1" max="120" value="67"
+                                        placeholder="e.g., 67" />
                                 </div>
                             </div>
                         </div>
@@ -553,6 +602,41 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="top-person-column">
+                                <h3 class="person-title">Other Income</h3>
+                                <div class="input-group">
+                                    <label for="other-income-primary-amount">Primary
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Monthly part-time/side-hustle income for the
+                                                primary person between their Other Income start/stop ages. Grows with
+                                                inflation like Social Security. Set to 0 if not applicable.</span>
+                                        </span>
+                                    </label>
+                                    <div class="currency-input-wrapper">
+                                        <span class="currency-symbol">$</span>
+                                        <input type="text" inputmode="decimal" class="currency-input"
+                                            id="other-income-primary-amount" name="other-income-primary-amount"
+                                            value="0" placeholder="e.g., 0" />
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label for="other-income-secondary-amount">Secondary
+                                        <span class="tooltip">
+                                            ?
+                                            <span class="tooltip-text">Monthly part-time/side-hustle income for the
+                                                secondary person between their Other Income start/stop ages. Grows with
+                                                inflation like Social Security. Set to 0 if not applicable.</span>
+                                        </span>
+                                    </label>
+                                    <div class="currency-input-wrapper">
+                                        <span class="currency-symbol">$</span>
+                                        <input type="text" inputmode="decimal" class="currency-input"
+                                            id="other-income-secondary-amount" name="other-income-secondary-amount"
+                                            value="0" placeholder="e.g., 0" />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </section>
 
@@ -902,6 +986,8 @@
                         aria-selected="false">Annuity</button>
                     <button type="button" class="tab-button" data-tab="social-security-projection-section" role="tab"
                         aria-selected="false">Social Security</button>
+                    <button type="button" class="tab-button" data-tab="other-income-projection-section" role="tab"
+                        aria-selected="false">Other Income</button>
                     <button type="button" class="tab-button" data-tab="withdrawal-projection-section" role="tab"
                         aria-selected="false">Portfolio</button>
                     <button type="button" class="tab-button" data-tab="tax-projection-section" role="tab"
@@ -991,6 +1077,25 @@
                         </div>
                     </section>
 
+                    <!-- Other Income Projection Results -->
+                    <section class="top-section tab-panel" id="other-income-projection-section" hidden>
+                        <h2 class="section-title">Other Income Projection</h2>
+                        <div class="table-scroll">
+                            <table class="projection-table" id="other-income-projection-table">
+                                <thead>
+                                    <tr>
+                                        <th>Year</th>
+                                        <th>Age(s)</th>
+                                        <th>Primary</th>
+                                        <th>Spouse</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="other-income-projection-tbody"></tbody>
+                            </table>
+                        </div>
+                    </section>
+
                     <!-- Portfolio Withdrawal Projection Results -->
                     <section class="top-section tab-panel" id="withdrawal-projection-section" hidden>
                         <h2 class="section-title">Portfolio Withdrawal Projection</h2>
@@ -1033,6 +1138,7 @@
                                         <th>Taxable SS</th>
                                         <th>Deduction</th>
                                         <th>Federal</th>
+                                        <th>Payroll</th>
                                         <th>NIIT</th>
                                         <th>State</th>
                                         <th>Total</th>
