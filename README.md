@@ -18,7 +18,7 @@
     - [How are taxes calculated on taxable brokerage account withdrawals?](#how-are-taxes-calculated-on-taxable-brokerage-account-withdrawals)
     - [What about cash savings?](#what-about-cash-savings)
     - [How are portfolio returns calculated?](#how-are-portfolio-returns-calculated)
-    - [What do the Generate Bad Sequence and Generate Good Sequence buttons do in the Advanced Stock Returns dialog?](#what-do-the-generate-bad-sequence-and-generate-good-sequence-buttons-do-in-the-advanced-stock-returns-dialog)
+    - [What does the Generate Sequence button do in the Advanced Stock Returns Dialog?](#what-does-the-generate-sequence-button-do-in-the-advanced-stock-returns-dialog)
     - [What if I have pension income?](#what-if-i-have-pension-income)
     - [Is the annuity income adjusted for inflation?](#is-the-annuity-income-adjusted-for-inflation)
     - [What if my pension income is adjusted for inflation?](#what-if-my-pension-income-is-adjusted-for-inflation)
@@ -140,9 +140,10 @@ Bonds are flatly increased by the bond percentage each year.
 By default, stocks are also flatly increased by the stock percentage each year.
 If you select 'Use Advanced Stock Returns', you can set the percentage return on a per-year basis to simulate any sequence of returns you want to model.
 
-### What do the Generate Bad Sequence and Generate Good Sequence buttons do in the Advanced Stock Returns dialog?
+### What does the Generate Sequence button do in the Advanced Stock Returns Dialog?
 
-They change the returns to drop or raise by about 45% in the first 5 years, recovering over the next 5, and flattening to the stock percentage for all other years.
+They calculate an effective drop or raise in the portfolio over a defined period at the beginning of retirement to simulate sequence of returns risk.
+After the drop (or gain for a positive percentage), returns are increased (or lowered) to revert to the mean over the projection timeline.
 
 ### What if I have pension income?
 

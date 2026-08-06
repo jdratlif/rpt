@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 1.2.0 - 2026-08-06
+
+- add annuitized expenses
+- align pre-medicare expenses
+- add custom labels for one-time and temporary expenses
+- display sum of medical expenses instead of individual when married
+- improve sequence of returns generation
+  - allow custom percentages and time periods
+
 ## 1.1.0 - 2026-08-05
 
 - add adjustable RMD start age
