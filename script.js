@@ -161,7 +161,8 @@ function buildExpenseRowHtml(config, rowNumber) {
     const fieldsHtml = config.fields.map((field) => buildExpenseFieldHtml(config.idPrefix, rowNumber, field)).join('');
     return `
         <div class="expense-row">
-            <div class="expense-row-label">Expense ${rowNumber}</div>
+            <div class="expense-row-label" role="button" tabindex="0"
+                title="Click to rename this expense">Expense ${rowNumber}</div>
             <div class="top-input-grid horizontal">
                 ${fieldsHtml}
                 <div class="expense-row-actions">
@@ -177,23 +178,54 @@ function buildExpenseRowHtml(config, rowNumber) {
         </div>`;
 }
 
+function attachExpenseLabelRenameBehavior(label) {
+    if (!label) {
+        return;
+    }
+    label.addEventListener('click', () => {
+        const current = label.textContent || '';
+        const newName = window.prompt('Enter a name for this expense:', current);
+        if (newName !== null && newName.trim() !== '') {
+            label.textContent = newName.trim();
+            label.dataset.customName = 'true';
+        } else if (newName !== null && newName.trim() === '') {
+            delete label.dataset.customName;
+        }
+    });
+    label.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            label.click();
+        }
+    });
+}
+
+// Attach rename behavior to the static "Expense 1" rows that exist in the
+// initial HTML; dynamically created rows get it in createExpenseRowElement.
+document.querySelectorAll('.expense-row-label').forEach(attachExpenseLabelRenameBehavior);
+
 function createExpenseRowElement(config, rowNumber) {
     const template = document.createElement('template');
     template.innerHTML = buildExpenseRowHtml(config, rowNumber).trim();
     const rowElement = template.content.firstElementChild;
     rowElement.querySelectorAll('.currency-input').forEach(attachCurrencyInputBehavior);
+    attachExpenseLabelRenameBehavior(rowElement.querySelector('.expense-row-label'));
     return rowElement;
 }
 
-// Keeps each row's "Expense N" label and field ids/names/label-for sequential
-// (1..count) after any add/remove, and disables the remove button on the only
-// remaining row so at least one row always stays.
+// Keeps each row's field ids/names/label-for sequential (1..count) after any
+// add/remove, and disables the remove button on the only remaining row so at
+// least one row always stays. Custom expense names are preserved.
 function renumberExpenseRows(containerId) {
     const config = EXPENSE_ROW_LISTS[containerId];
     const rows = Array.from(document.getElementById(containerId).children);
     rows.forEach((row, index) => {
         const rowNumber = index + 1;
-        row.querySelector('.expense-row-label').textContent = `Expense ${rowNumber}`;
+        const label = row.querySelector('.expense-row-label');
+        // Only reset the label if the user hasn't given it a custom name.
+        if (!label.dataset.customName) {
+            label.textContent = `Expense ${rowNumber}`;
+        }
         row.querySelectorAll('.input-group').forEach((group, fieldIndex) => {
             const field = config.fields[fieldIndex];
             const id = `${config.idPrefix}-${rowNumber}-${field.suffix}`;
@@ -203,6 +235,39 @@ function renumberExpenseRows(containerId) {
             input.name = id;
         });
         row.querySelector('.expense-row-remove').disabled = rows.length <= 1;
+    });
+}
+
+// Collects the current text of each dynamic expense-row label so custom names
+// can be persisted and restored alongside row counts.
+function collectExpenseLabels() {
+    const labels = {};
+    Object.keys(EXPENSE_ROW_LISTS).forEach((containerId) => {
+        labels[containerId] = Array.from(document.getElementById(containerId).children).map(
+            (row) => row.querySelector('.expense-row-label').textContent
+        );
+    });
+    return labels;
+}
+
+// Applies saved expense-row labels after rows are rebuilt. When no labels are
+// provided (e.g. Load Defaults), clears any custom names so labels revert to
+// "Expense N".
+function applyExpenseLabels(labelsByContainer) {
+    Object.keys(EXPENSE_ROW_LISTS).forEach((containerId) => {
+        const savedLabels = labelsByContainer && labelsByContainer[containerId];
+        const rows = Array.from(document.getElementById(containerId).children);
+        rows.forEach((row, index) => {
+            const label = row.querySelector('.expense-row-label');
+            const saved = savedLabels && savedLabels[index];
+            if (saved) {
+                label.textContent = saved;
+                label.dataset.customName = 'true';
+            } else {
+                delete label.dataset.customName;
+            }
+        });
+        renumberExpenseRows(containerId);
     });
 }
 
@@ -250,6 +315,7 @@ Object.keys(EXPENSE_ROW_LISTS).forEach((containerId) => {
 // reset, which would reformat stale values instead of the restored defaults.
 document.getElementById('reset-btn').addEventListener('click', () => {
     Object.keys(EXPENSE_ROW_LISTS).forEach((containerId) => setExpenseRowCount(containerId, 1));
+    applyExpenseLabels();
     document.querySelectorAll('#retirement-form input').forEach((input) => {
         if (input.type === 'checkbox') {
             input.checked = input.defaultChecked;
@@ -282,6 +348,7 @@ function collectInputValues() {
     Object.keys(EXPENSE_ROW_LISTS).forEach((containerId) => {
         values._expenseRowCounts[containerId] = document.getElementById(containerId).children.length;
     });
+    values._expenseLabels = collectExpenseLabels();
     return values;
 }
 
@@ -295,6 +362,7 @@ function applyInputValues(values) {
     Object.keys(EXPENSE_ROW_LISTS).forEach((containerId) => {
         setExpenseRowCount(containerId, expenseRowCounts[containerId] || 1);
     });
+    applyExpenseLabels(values._expenseLabels);
     document.querySelectorAll('#retirement-form input').forEach((input) => {
         if (!(input.id in values)) {
             return;

@@ -230,6 +230,12 @@ h1 {
     color: #2c3e50;
     margin-bottom: 8px;
     font-size: 0.95rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.expense-row-label:hover {
+    color: #3498db;
 }
 
 .tooltip {
