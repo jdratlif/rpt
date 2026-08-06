@@ -752,7 +752,7 @@ function renderSocialSecurityProjectionTable(rows) {
 // SECURE 2.0 requires traditional IRA/401(k) distributions to begin at age 73
 // (current law through 2032; rises to 75 in 2033, which this simplified
 // calculator doesn't model).
-const RMD_AGE = 73;
+const DEFAULT_RMD_AGE = 73; // default if user does not set
 
 // IRS Uniform Lifetime Table (Table III, Pub. 590-B) applicable denominators,
 // used for owners whose spouse isn't both the sole beneficiary and more than 10
@@ -791,7 +791,7 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
     // its balance here, before this year's withdrawal) and the primary's age;
     // widow status is ignored for this calculation for simplicity.
     const traditionalBalanceBeforeWithdrawal = accounts.traditional.stock + accounts.traditional.bond;
-    const rmdAmount = primaryAge >= RMD_AGE
+    const rmdAmount = primaryAge >= context.rmdStartAge
         ? traditionalBalanceBeforeWithdrawal / getRmdDivisor(primaryAge)
         : 0;
 
@@ -1291,6 +1291,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         inflationRate: parsePercentInput(document.getElementById('inflation-percentage')) / 100,
         hasSpouse: document.getElementById('has-spouse').checked,
         widowAge: parseFloat(document.getElementById('widow-age').value) || 0,
+        rmdStartAge: parseInt(document.getElementById('rmd-start-age').value) || DEFAULT_RMD_AGE,
         monthlyExpenses: parseCurrencyInput(document.getElementById('monthly-expenses')),
         primaryPreMedicareExpenses: parseCurrencyInput(document.getElementById('pre-medicare-expenses-primary')),
         spousePreMedicareExpenses: parseCurrencyInput(document.getElementById('pre-medicare-expenses-spouse')),
@@ -1383,6 +1384,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         inflationRate: expenseContext.inflationRate,
         hasSpouse: expenseContext.hasSpouse,
         widowAge: expenseContext.widowAge,
+        rmdStartAge: expenseContext.rmdStartAge, // added
         yearlyMonthlyStockReturns,
         monthlyBondReturn,
     };
