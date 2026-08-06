@@ -223,6 +223,8 @@ Just uncheck the Married checkbox and you can calculate the effects of retiring 
 
 This means the RMD exceeded what you would have needed to withdraw to cover expenses.
 If your RMD was $25,000, but you only needed $10,000 to cover expenses, it would be highlighted to indicate that.
+The $15,000 excess is assumed to be saved rather than spent, so (net of an estimated tax on it) it's treated as a
+Roth conversion and shown in the Conversion column of the Portfolio Withdrawal Projection table.
 
 ### What is NIIT?
 

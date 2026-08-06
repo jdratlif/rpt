@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.0 - 2006-08-06
+
+- treat excess RMD (beyond what's needed for expenses/taxes) as a Roth conversion instead of unmodeled spending
+
 ## 1.2.0 - 2026-08-06
 
 - add annuitized expenses

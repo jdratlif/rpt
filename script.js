@@ -1149,12 +1149,16 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
     const traditionalNeedBeforeRmd = remaining;
 
     // The traditional withdrawal must be bumped up to the RMD even if that's more
-    // than needed to cover expenses; the unneeded excess is simply left unmodeled
-    // as extra cash flow outside the portfolio, like any other income surplus.
+    // than needed to cover expenses; per user's choice, the excess (net of its own
+    // estimated tax) is deposited into Roth below rather than left as unmodeled
+    // surplus spending.
     let traditionalWithdrawal = withdrawFromAccount(accounts.traditional, Math.max(remaining, rmdAmount));
     // Real cash actually pulled for the pre-RMD need, capped by whatever the
     // account could provide (relevant if the balance ran out mid-withdrawal).
     let traditionalWithdrawalDisplay = Math.min(traditionalNeedBeforeRmd, traditionalWithdrawal);
+    // Snapshot before gross-up (below) adds more to traditionalWithdrawal, so this
+    // captures only the RMD-forced portion, already capped if the account ran dry.
+    const rmdExcessWithdrawn = Math.max(0, traditionalWithdrawal - traditionalNeedBeforeRmd);
     remaining = Math.max(0, remaining - traditionalWithdrawal);
 
     let rothWithdrawal = withdrawFromAccount(accounts.roth, remaining);
@@ -1177,6 +1181,18 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
     traditionalWithdrawalDisplay += grossUpFromTraditional;
     rothWithdrawal += grossUpFromRoth;
     const taxGrossUpWithdrawal = grossUpFromTaxable + grossUpFromTraditional + grossUpFromRoth;
+
+    // RMD-excess-to-Roth: the cash already withdrawn above (rmdExcessWithdrawn) just
+    // needs to land somewhere instead of vanishing as unmodeled surplus. The caller
+    // (computeYearRows) already estimated and netted out this excess's own tax (and
+    // netted out any of it consumed by the Gross-Up for Taxes feature) before handing
+    // us the after-tax amount to deposit; scaled down here only if this real run's
+    // account balance capped the withdrawal lower than the dry run that sized it.
+    const rmdExcessRequested = Math.max(0, context.rmdExcessRequestedNominal || 0);
+    const rmdExcessDeposit = rmdExcessRequested > 0
+        ? (context.rmdExcessNetDeposit || 0) * (rmdExcessWithdrawn / rmdExcessRequested)
+        : 0;
+    depositToAccount(accounts.roth, rmdExcessDeposit);
 
     // Roth conversion: pulled from Traditional only (not the shortfall waterfall,
     // since a conversion is a deliberate account move, not spending). Only the
@@ -1231,9 +1247,12 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
         // Already included in the three withdrawal figures above; broken out here
         // just so it's visible how much of the withdrawal was for taxes vs. spending.
         taxGrossUpWithdrawal: taxGrossUpWithdrawal * deflationFactor,
-        // Net amount that actually landed in Roth -- already included in
-        // traditionalWithdrawal above (the gross conversion) and in rothBalance below.
-        rothConversionDeposit: rothConversionDeposit * deflationFactor,
+        // Net amount that actually landed in Roth -- combines the deliberate Roth
+        // Conversion feature and the RMD-excess-to-Roth deposit (both shown in the
+        // same column, per user's choice, since both are traditional->Roth moves).
+        // Already included in traditionalWithdrawal above (the gross amounts) and in
+        // rothBalance below.
+        rothConversionDeposit: (rothConversionDeposit + rmdExcessDeposit) * deflationFactor,
         totalWithdrawal: (taxableWithdrawal + traditionalWithdrawal + rothWithdrawal) * deflationFactor,
         taxableBalance: taxableBalance * deflationFactor,
         traditionalBalance: traditionalBalance * deflationFactor,
@@ -1241,6 +1260,10 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
         totalBalance: (taxableBalance + traditionalBalance + rothBalance) * deflationFactor,
         // Already nominal -- needed by the tax projection regardless of display mode.
         rmdAmountNominal: rmdAmount,
+        // Gross (pre-tax) RMD-forced excess this run actually withdrew, capped by
+        // whatever the traditional balance could provide -- read by computeYearRows'
+        // dry run to size the RMD-excess-to-Roth deposit above.
+        rmdExcessNominal: rmdExcessWithdrawn,
         taxableWithdrawalNominal: taxableWithdrawal,
         traditionalWithdrawalNominal: traditionalWithdrawal,
         // Includes Roth (untaxed) too -- needed for the tax projection's effective rate,
@@ -1256,7 +1279,8 @@ function renderWithdrawalProjectionTable(rows) {
     rows.forEach((row) => {
         const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
         // Up arrow calls out years where the RMD forced a withdrawal bigger than
-        // expenses actually required (the excess becomes unmodeled surplus cash).
+        // expenses actually required (the excess is deposited into Roth, net of tax --
+        // see the Roth Conversion column).
         const rmdCellClass = row.rmdExceedsShortfall ? ' class="rmd-excess-cell"' : '';
         const rmdArrow = row.rmdExceedsShortfall ? ' &uarr;' : '';
         const tr = document.createElement('tr');
@@ -1902,19 +1926,33 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
                 rothConversionNetDeposit = rothConversionForYear * (1 - conversionMarginalRate);
             }
 
+            // RMD-excess-to-Roth: cash the RMD forced out of Traditional beyond what
+            // expenses needed, net of its own estimated tax (same one-shot federal-
+            // bracket + state-rate estimate as the Roth Conversion feature above --
+            // it's ordinary income stacking on the rest of the traditional withdrawal,
+            // already taxed for real by calculateTaxYear below). Per user's choice,
+            // this replaces the old behavior of letting the excess vanish as unmodeled
+            // surplus spending.
+            const rmdExcessMarginalRate = Math.min(0.9, estimateWithdrawalMarginalRate(
+                'traditional', baseTaxRow, taxContextBase.stateTaxRate, taxContextBase.taxableBasisFraction
+            ));
+            const rmdExcessNet = baseWithdrawal.rmdExcessNominal * (1 - rmdExcessMarginalRate);
+            // If Gross-Up for Taxes is also on, this net cash is fungible with the other
+            // surplus used to cover the tax bill (per user's choice) -- only reduced by
+            // the gross-up branch below, never increased; whatever's left afterward is
+            // what actually gets deposited to Roth.
+            let rmdExcessUsedForTax = 0;
+
             let additionalWithdrawalForTaxes = 0;
 
             if (grossUpForTaxes) {
                 // "Surplus" cash not needed for spending -- guaranteed income beyond
-                // expenses, or an RMD forced above the shortfall -- is assumed to go
-                // toward taxes first, before any extra withdrawal is needed.
-                const shortfall = Math.max(0, expensesNominal - incomeNominal);
+                // expenses -- is assumed to go toward taxes first, before the RMD-excess
+                // net cash, before any extra withdrawal is needed.
                 const incomeSurplus = Math.max(0, incomeNominal - expensesNominal);
-                const rmdExcess = Math.max(
-                    0,
-                    baseWithdrawal.rmdAmountNominal - Math.max(0, shortfall - baseWithdrawal.taxableWithdrawalNominal)
-                );
-                const netCashNeeded = Math.max(0, baseTaxRow.totalTaxNominal - incomeSurplus - rmdExcess);
+                const taxShortfallAfterIncomeSurplus = Math.max(0, baseTaxRow.totalTaxNominal - incomeSurplus);
+                rmdExcessUsedForTax = Math.min(rmdExcessNet, taxShortfallAfterIncomeSurplus);
+                const netCashNeeded = Math.max(0, taxShortfallAfterIncomeSurplus - rmdExcessNet);
 
                 if (netCashNeeded > 0) {
                     // The gross-up dollar comes from whichever account still has room,
@@ -1939,6 +1977,10 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
                 }
             }
 
+            // Whatever the RMD-excess net cash didn't have to cover for taxes above is
+            // what's actually deposited to Roth.
+            const rmdExcessRothDeposit = rmdExcessNet - rmdExcessUsedForTax;
+
             const withdrawalRow = calculateWithdrawalYear(
                 year,
                 {
@@ -1946,6 +1988,8 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
                     additionalWithdrawalForTaxes,
                     rothConversionAmount: rothConversionForYear,
                     rothConversionNetDeposit,
+                    rmdExcessRequestedNominal: baseWithdrawal.rmdExcessNominal,
+                    rmdExcessNetDeposit: rmdExcessRothDeposit,
                 },
                 withdrawalAccounts
             );
