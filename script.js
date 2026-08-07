@@ -993,10 +993,12 @@ function calculateSocialSecurityYear(yearIndex, context) {
 }
 
 // Employee-side FICA (Social Security + Medicare) withholding rate, applied to
-// Other Income as if it were a normal W-2 job. Per user's explicit choice, the
-// self-employment case (which would double this, since there's no employer to
-// split it with) is ignored for simplicity.
+// Other Income as if it were a normal W-2 job.
 const OTHER_INCOME_PAYROLL_TAX_RATE = 0.0765;
+// Full self-employment tax rate (both the employee and employer halves, since a
+// self-employed person has no employer to split it with), used instead of the
+// rate above when the per-person "Self Employment" checkbox is checked.
+const SELF_EMPLOYMENT_PAYROLL_TAX_RATE = 0.153;
 
 // Part-time/side-hustle income for each person, active only between their own
 // [startAge, stopAge]. Like Social Security, this gets automatic COLA increases,
@@ -1013,12 +1015,19 @@ function calculateOtherIncomeYear(yearIndex, context) {
         spouseAge >= context.spouseOtherIncomeStartAge && spouseAge <= context.spouseOtherIncomeStopAge)
         ? context.spouseOtherIncomeAmount * 12
         : 0;
+    let primaryPayrollTaxRate = context.primaryOtherIncomeSelfEmployed
+        ? SELF_EMPLOYMENT_PAYROLL_TAX_RATE
+        : OTHER_INCOME_PAYROLL_TAX_RATE;
+    const spousePayrollTaxRate = context.spouseOtherIncomeSelfEmployed
+        ? SELF_EMPLOYMENT_PAYROLL_TAX_RATE
+        : OTHER_INCOME_PAYROLL_TAX_RATE;
 
     // Primary is assumed deceased once the spouse reaches widow age; his own
     // income stops, the spouse's own income is unaffected. Only applicable when
     // there's actually a spouse to survive him.
     if (context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge) {
         primaryOtherIncome = 0;
+        primaryPayrollTaxRate = 0;
     }
 
     const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
@@ -1026,6 +1035,11 @@ function calculateOtherIncomeYear(yearIndex, context) {
     // withdrawal simulation needs true nominal dollars regardless of display mode.
     const nominalFactor = Math.pow(1 + context.inflationRate, yearsFromToday);
     const inflationFactor = context.showTodaysDollars ? 1 : nominalFactor;
+
+    // Payroll tax computed per-person (self-employment doubles the rate) then
+    // summed, since primary/spouse can independently be self-employed or not.
+    const payrollTaxNominal =
+        (primaryOtherIncome * primaryPayrollTaxRate + spouseOtherIncome * spousePayrollTaxRate) * nominalFactor;
 
     return {
         year: yearIndex,
@@ -1037,6 +1051,7 @@ function calculateOtherIncomeYear(yearIndex, context) {
         spouseOtherIncome: spouseOtherIncome * inflationFactor,
         total: (primaryOtherIncome + spouseOtherIncome) * inflationFactor,
         totalNominal: (primaryOtherIncome + spouseOtherIncome) * nominalFactor,
+        payrollTaxNominal,
     };
 }
 
@@ -1496,11 +1511,13 @@ function calculateTaxYear(yearIndex, context) {
     const stateTax = stateTaxableIncome * context.stateTaxRate;
 
     // Employee-side FICA withholding on Other Income, treated like a normal W-2
-    // job (self-employment's doubled rate is ignored, per user's explicit choice).
-    // Not part of federal/state income tax -- it's a separate payroll tax on gross
-    // wages, so it's added on top rather than folded into ordinaryIncomeBeforeSS's
+    // job unless the per-person Self Employment checkbox is checked (full
+    // self-employment rate, already computed per-person in
+    // calculateOtherIncomeYear since primary/spouse can differ). Not part of
+    // federal/state income tax -- it's a separate payroll tax on gross wages, so
+    // it's added on top rather than folded into ordinaryIncomeBeforeSS's
     // income-tax treatment above.
-    const payrollTax = context.otherIncomeNominal * OTHER_INCOME_PAYROLL_TAX_RATE;
+    const payrollTax = context.otherIncomePayrollTaxNominal;
 
     const totalTax = federalIncomeTax + payrollTax + niit + stateTax;
     const deflationFactor = context.showTodaysDollars ? 1 / nominalFactor : 1;
@@ -1738,6 +1755,8 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         spouseOtherIncomeStopAge: parseFloat(document.getElementById('spouse-other-income-stop-age').value) || 0,
         primaryOtherIncomeAmount: parseCurrencyInput(document.getElementById('other-income-primary-amount')),
         spouseOtherIncomeAmount: parseCurrencyInput(document.getElementById('other-income-secondary-amount')),
+        primaryOtherIncomeSelfEmployed: document.getElementById('other-income-primary-self-employed').checked,
+        spouseOtherIncomeSelfEmployed: document.getElementById('other-income-secondary-self-employed').checked,
     };
 
     const otherIncomeRows = [];
@@ -1848,7 +1867,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
             roth: { ...startingAccounts.roth },
         };
 
-        const buildTaxContext = (withdrawalRow, annuityNominal, socialSecurityNominal, otherIncomeNominal) => ({
+        const buildTaxContext = (withdrawalRow, annuityNominal, socialSecurityNominal, otherIncomeNominal, otherIncomePayrollTaxNominal) => ({
             ...taxContextBase,
             traditionalWithdrawalNominal: withdrawalRow.traditionalWithdrawalNominal,
             taxableWithdrawalNominal: withdrawalRow.taxableWithdrawalNominal,
@@ -1856,6 +1875,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
             annuityNominal,
             socialSecurityNominal,
             otherIncomeNominal,
+            otherIncomePayrollTaxNominal,
         });
 
         const withdrawalRows = [];
@@ -1865,6 +1885,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
             const annuityNominal = annuityRows[year - 1].totalNominal;
             const socialSecurityNominal = socialSecurityRows[year - 1].totalNominal;
             const otherIncomeNominal = otherIncomeRows[year - 1].totalNominal;
+            const otherIncomePayrollTaxNominal = otherIncomeRows[year - 1].payrollTaxNominal;
             const incomeNominal = annuityNominal + socialSecurityNominal + otherIncomeNominal;
             const yearWithdrawalContext = { ...withdrawalContextBase, expensesNominal, incomeNominal };
 
@@ -1881,7 +1902,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
             };
             const baseWithdrawal = calculateWithdrawalYear(year, yearWithdrawalContext, dryRunAccounts);
             const baseTaxRow = calculateTaxYear(
-                year, buildTaxContext(baseWithdrawal, annuityNominal, socialSecurityNominal, otherIncomeNominal)
+                year, buildTaxContext(baseWithdrawal, annuityNominal, socialSecurityNominal, otherIncomeNominal, otherIncomePayrollTaxNominal)
             );
 
             // Roth conversion: same one-shot marginal-rate estimate the gross-up
@@ -1971,7 +1992,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
             // one-shot estimate rather than an iterative solve, it may not be an exact
             // break-even (the gross-up's own marginal tax isn't grossed up further).
             taxRows.push(calculateTaxYear(
-                year, buildTaxContext(withdrawalRow, annuityNominal, socialSecurityNominal, otherIncomeNominal)
+                year, buildTaxContext(withdrawalRow, annuityNominal, socialSecurityNominal, otherIncomeNominal, otherIncomePayrollTaxNominal)
             ));
         }
 
