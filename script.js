@@ -931,24 +931,6 @@ function calculateAnnuityYear(yearIndex, context) {
     };
 }
 
-function renderAnnuityProjectionTable(rows) {
-    const tbody = document.getElementById('annuity-projection-tbody');
-    tbody.innerHTML = '';
-
-    rows.forEach((row) => {
-        const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${row.year}</td>
-            <td>${ageCell}</td>
-            <td>${formatResultCurrency(row.primaryAnnuity)}</td>
-            <td>${formatResultCurrency(row.spouseAnnuity)}</td>
-            <td class="total-cell">${formatResultCurrency(row.total)}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
 // Social Security's full retirement age (FRA) for anyone retiring in the
 // projection window covered by this tool.
 const SOCIAL_SECURITY_FULL_RETIREMENT_AGE = 67;
@@ -1010,24 +992,6 @@ function calculateSocialSecurityYear(yearIndex, context) {
     };
 }
 
-function renderSocialSecurityProjectionTable(rows) {
-    const tbody = document.getElementById('social-security-projection-tbody');
-    tbody.innerHTML = '';
-
-    rows.forEach((row) => {
-        const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${row.year}</td>
-            <td>${ageCell}</td>
-            <td>${formatResultCurrency(row.primarySS)}</td>
-            <td>${formatResultCurrency(row.spouseSS)}</td>
-            <td class="total-cell">${formatResultCurrency(row.total)}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
 // Employee-side FICA (Social Security + Medicare) withholding rate, applied to
 // Other Income as if it were a normal W-2 job. Per user's explicit choice, the
 // self-employment case (which would double this, since there's no employer to
@@ -1076,19 +1040,34 @@ function calculateOtherIncomeYear(yearIndex, context) {
     };
 }
 
-function renderOtherIncomeProjectionTable(rows) {
-    const tbody = document.getElementById('other-income-projection-tbody');
+// Combines the Annuity, Social Security, Other Income, and Portfolio Withdrawal
+// projection rows into a single Income table so users can see all income sources
+// (and the total) in one place.
+function renderIncomeProjectionTable(annuityRows, socialSecurityRows, otherIncomeRows, withdrawalRows) {
+    const tbody = document.getElementById('income-projection-tbody');
     tbody.innerHTML = '';
 
-    rows.forEach((row) => {
-        const ageCell = formatAgeCell(row.primaryAge, row.spouseAge, row.hasSpouse, row.isWidowed);
+    annuityRows.forEach((annuityRow, index) => {
+        const ssRow = socialSecurityRows[index];
+        const otherRow = otherIncomeRows[index];
+        const withdrawalRow = withdrawalRows[index];
+        const ageCell = formatAgeCell(annuityRow.primaryAge, annuityRow.spouseAge, annuityRow.hasSpouse, annuityRow.isWidowed);
+
+        const annuityTotal = annuityRow.total;
+        const ssTotal = ssRow.total;
+        const otherTotal = otherRow.total;
+        const portfolioWithdrawal = withdrawalRow.totalWithdrawal;
+        const total = annuityTotal + ssTotal + otherTotal + portfolioWithdrawal;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${row.year}</td>
+            <td>${annuityRow.year}</td>
             <td>${ageCell}</td>
-            <td>${formatResultCurrency(row.primaryOtherIncome)}</td>
-            <td>${formatResultCurrency(row.spouseOtherIncome)}</td>
-            <td class="total-cell">${formatResultCurrency(row.total)}</td>
+            <td>${formatResultCurrency(annuityTotal)}</td>
+            <td>${formatResultCurrency(ssTotal)}</td>
+            <td>${formatResultCurrency(otherTotal)}</td>
+            <td>${formatResultCurrency(portfolioWithdrawal)}</td>
+            <td class="total-cell">${formatResultCurrency(total)}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -1721,8 +1700,6 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         annuityRows.push(calculateAnnuityYear(year, annuityContext));
     }
 
-    renderAnnuityProjectionTable(annuityRows);
-
     const primarySocialSecurityAge = parseFloat(document.getElementById('primary-social-security-age').value) || 0;
     const spouseSocialSecurityAge = parseFloat(document.getElementById('spouse-social-security-age').value) || 0;
     const primaryBenefitAtFRA = parseCurrencyInput(document.getElementById('social-security-primary-benefit'));
@@ -1747,8 +1724,6 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         socialSecurityRows.push(calculateSocialSecurityYear(year, socialSecurityContext));
     }
 
-    renderSocialSecurityProjectionTable(socialSecurityRows);
-
     const otherIncomeContext = {
         retirementAge,
         yearsToRetirement,
@@ -1769,8 +1744,6 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
     for (let year = 1; year <= projectionYears; year++) {
         otherIncomeRows.push(calculateOtherIncomeYear(year, otherIncomeContext));
     }
-
-    renderOtherIncomeProjectionTable(otherIncomeRows);
 
     // Start from the actual retirement-age stock/bond split (which may have drifted
     // from stockFraction/bondFraction) rather than the plain traditional/roth/taxable
@@ -2029,6 +2002,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
     const finalPass = computeYearRows(irmaaMonthlySurchargeByYear);
 
     renderExpenseProjectionTable(finalPass.expenseRows);
+    renderIncomeProjectionTable(annuityRows, socialSecurityRows, otherIncomeRows, finalPass.withdrawalRows);
     renderWithdrawalProjectionTable(finalPass.withdrawalRows);
     renderTaxProjectionTable(finalPass.taxRows);
 

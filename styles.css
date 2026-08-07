@@ -602,6 +602,44 @@ h1 {
     width: 12%;
 }
 
+/* Keep the combined Income Projection table columns evenly sized so the wider
+   "Social Security" and "Portfolio Withdrawal" headers don't squeeze others. */
+#income-projection-table {
+    table-layout: fixed;
+}
+
+#income-projection-table th:nth-child(1),
+#income-projection-table td:nth-child(1) {
+    width: 8%;
+}
+
+#income-projection-table th:nth-child(2),
+#income-projection-table td:nth-child(2) {
+    width: 10%;
+}
+
+#income-projection-table th:nth-child(3),
+#income-projection-table td:nth-child(3),
+#income-projection-table th:nth-child(5),
+#income-projection-table td:nth-child(5) {
+    width: 15%;
+}
+
+#income-projection-table th:nth-child(4),
+#income-projection-table td:nth-child(4) {
+    width: 18%;
+}
+
+#income-projection-table th:nth-child(6),
+#income-projection-table td:nth-child(6) {
+    width: 19%;
+}
+
+#income-projection-table th:nth-child(7),
+#income-projection-table td:nth-child(7) {
+    width: 15%;
+}
+
 .link-button {
     background: none;
     border: none;

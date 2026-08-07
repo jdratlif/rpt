@@ -967,12 +967,8 @@
                         aria-selected="true">Summary</button>
                     <button type="button" class="tab-button" data-tab="expense-projection-section" role="tab"
                         aria-selected="false">Expenses</button>
-                    <button type="button" class="tab-button" data-tab="annuity-projection-section" role="tab"
-                        aria-selected="false">Annuity</button>
-                    <button type="button" class="tab-button" data-tab="social-security-projection-section" role="tab"
-                        aria-selected="false">Social Security</button>
-                    <button type="button" class="tab-button" data-tab="other-income-projection-section" role="tab"
-                        aria-selected="false">Other Income</button>
+                    <button type="button" class="tab-button" data-tab="income-projection-section" role="tab"
+                        aria-selected="false">Income</button>
                     <button type="button" class="tab-button" data-tab="withdrawal-projection-section" role="tab"
                         aria-selected="false">Portfolio</button>
                     <button type="button" class="tab-button" data-tab="tax-projection-section" role="tab"
@@ -1025,59 +1021,23 @@
                         </div>
                     </section>
 
-                    <!-- Annuity Projection Results -->
-                    <section class="top-section tab-panel" id="annuity-projection-section" hidden>
-                        <h2 class="section-title">Annuity Income Projection</h2>
+                    <!-- Income Projection Results -->
+                    <section class="top-section tab-panel" id="income-projection-section" hidden>
+                        <h2 class="section-title">Income Projection</h2>
                         <div class="table-scroll">
-                            <table class="projection-table" id="annuity-projection-table">
+                            <table class="projection-table" id="income-projection-table">
                                 <thead>
                                     <tr>
                                         <th>Year</th>
                                         <th>Age(s)</th>
-                                        <th>Primary Annuity</th>
-                                        <th>Spouse Annuity</th>
+                                        <th>Annuity</th>
+                                        <th>Social Security</th>
+                                        <th>Other Income</th>
+                                        <th>Portfolio Withdrawal</th>
                                         <th>Total</th>
                                     </tr>
                                 </thead>
-                                <tbody id="annuity-projection-tbody"></tbody>
-                            </table>
-                        </div>
-                    </section>
-
-                    <!-- Social Security Projection Results -->
-                    <section class="top-section tab-panel" id="social-security-projection-section" hidden>
-                        <h2 class="section-title">Social Security Benefit Projection</h2>
-                        <div class="table-scroll">
-                            <table class="projection-table" id="social-security-projection-table">
-                                <thead>
-                                    <tr>
-                                        <th>Year</th>
-                                        <th>Age(s)</th>
-                                        <th>Primary SS</th>
-                                        <th>Spouse SS</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="social-security-projection-tbody"></tbody>
-                            </table>
-                        </div>
-                    </section>
-
-                    <!-- Other Income Projection Results -->
-                    <section class="top-section tab-panel" id="other-income-projection-section" hidden>
-                        <h2 class="section-title">Other Income Projection</h2>
-                        <div class="table-scroll">
-                            <table class="projection-table" id="other-income-projection-table">
-                                <thead>
-                                    <tr>
-                                        <th>Year</th>
-                                        <th>Age(s)</th>
-                                        <th>Primary</th>
-                                        <th>Spouse</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="other-income-projection-tbody"></tbody>
+                                <tbody id="income-projection-tbody"></tbody>
                             </table>
                         </div>
                     </section>
