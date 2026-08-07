@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 1.4.0 - 2026-08-07
+
+- combine income projection tables
+- add FAQ about IRMAA calculations and inflation
+- fix RMD tax calculations when excess money gets moved into Roth
+- don't include tax gross up in traditional withdrawal
+  - Total is now max(RMD, Traditional) + Roth + Taxable + Tax Gross Up (an additional Traditional withdrawal).
+- update default scenario
+
 ## 1.3.1 - 2026-08-07
 
 - update IRMAA penalty to include part D surcharge

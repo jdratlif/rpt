@@ -34,6 +34,7 @@
     - [Why are some of the RMD values in the Portfolio projection table highlighted with an arrow?](#why-are-some-of-the-rmd-values-in-the-portfolio-projection-table-highlighted-with-an-arrow)
     - [What is NIIT?](#what-is-niit)
     - [How are state taxes calculated?](#how-are-state-taxes-calculated)
+    - [Why isn't there an IRMAA surcharge when my income from 2 years ago is above the threshold?](#why-isnt-there-an-irmaa-surcharge-when-my-income-from-2-years-ago-is-above-the-threshold)
     - [Can I copy this to my website? It's free right?](#can-i-copy-this-to-my-website-its-free-right)
   - [Technology](#technology)
   - [License](#license)
@@ -248,6 +249,14 @@ It's a flat rate defaulting to 5% (because that's what I pay in Indiana).
 You can change it in the Rates section by clicking 'Edit Tax Tables (Advanced)'.
 There's a box for whether SS is taxed, which is calculated as the same amount that would be taxed federally.
 I'm sure there are more complicated tax systems in some states, but I think it's good enough for an internet calculator.
+
+### Why isn't there an IRMAA surcharge when my income from 2 years ago is above the threshold?
+
+The progam compares your 2-year old income to the inflation adjusted thresholds.
+So if the MFJ threshold is ~$218K two years ago, a 3% inflation factor would make it ~$231K today.
+So unless your income 2 years ago is over $231K when MFJ, IRMAA would not be calculated.
+I'm not sure if this is correct.
+Open an issue and leave a compelling argument on GitHub and maybe I'll change it.
 
 ### Can I copy this to my website? It's free right?
 
