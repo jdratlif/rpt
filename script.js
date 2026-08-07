@@ -906,15 +906,17 @@ function calculateAnnuityYear(yearIndex, context) {
     const primaryAge = context.retirementAge + (yearIndex - 1);
     const spouseAge = context.spouseAgeAtRetirement + (yearIndex - 1);
 
-    let primaryAnnuity = primaryAge >= context.primaryAnnuityAge ? context.primaryAnnuityIncome * 12 : 0;
+    const primaryAnnuityAmount = primaryAge >= context.primaryAnnuityAge ? context.primaryAnnuityIncome * 12 : 0;
     const spouseAnnuity = (context.hasSpouse && spouseAge >= context.spouseAnnuityAge) ? context.spouseAnnuityIncome * 12 : 0;
 
-    // Primary is assumed deceased once the spouse reaches widow age; no survivor
-    // benefit carries over for the annuity, it simply stops. Only applicable when
-    // there's actually a spouse to survive him.
-    if (context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge) {
-        primaryAnnuity = 0;
-    }
+    const isWidowed = context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge;
+    // Primary's own annuity stops once he's deceased. If Survival Benefit is
+    // checked, it instead carries on to the spouse (added to her own annuity,
+    // keeping the primary's own inflation-adjustment rule since it's the same
+    // underlying payment) rather than vanishing. Only applicable when there's
+    // actually a spouse to survive him.
+    const primaryAnnuity = isWidowed ? 0 : primaryAnnuityAmount;
+    const survivorAnnuity = (isWidowed && context.primaryAnnuitySurvivalBenefit) ? primaryAnnuityAmount : 0;
 
     const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
     const nominalFactor = Math.pow(1 + context.inflationRate, yearsFromToday);
@@ -928,16 +930,19 @@ function calculateAnnuityYear(yearIndex, context) {
     const primaryNominalFactor = context.primaryAnnuityInflationAdjusted ? nominalFactor : 1;
     const spouseNominalFactor = context.spouseAnnuityInflationAdjusted ? nominalFactor : 1;
 
+    const spouseAnnuityTotal = spouseAnnuity * spouseDisplayFactor + survivorAnnuity * primaryDisplayFactor;
+    const spouseAnnuityTotalNominal = spouseAnnuity * spouseNominalFactor + survivorAnnuity * primaryNominalFactor;
+
     return {
         year: yearIndex,
         primaryAge,
         spouseAge,
         hasSpouse: context.hasSpouse,
-        isWidowed: context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge,
+        isWidowed,
         primaryAnnuity: primaryAnnuity * primaryDisplayFactor,
-        spouseAnnuity: spouseAnnuity * spouseDisplayFactor,
-        total: primaryAnnuity * primaryDisplayFactor + spouseAnnuity * spouseDisplayFactor,
-        totalNominal: primaryAnnuity * primaryNominalFactor + spouseAnnuity * spouseNominalFactor,
+        spouseAnnuity: spouseAnnuityTotal,
+        total: primaryAnnuity * primaryDisplayFactor + spouseAnnuityTotal,
+        totalNominal: primaryAnnuity * primaryNominalFactor + spouseAnnuityTotalNominal,
     };
 }
 
@@ -1722,6 +1727,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         spouseAnnuityIncome: parseCurrencyInput(document.getElementById('annuity-secondary-income')),
         primaryAnnuityInflationAdjusted: document.getElementById('annuity-primary-inflation-adjusted').checked,
         spouseAnnuityInflationAdjusted: document.getElementById('annuity-secondary-inflation-adjusted').checked,
+        primaryAnnuitySurvivalBenefit: document.getElementById('annuity-primary-survival-benefit').checked,
     };
 
     const annuityRows = [];

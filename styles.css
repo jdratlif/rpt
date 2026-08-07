@@ -177,6 +177,12 @@ h1 {
     cursor: pointer;
 }
 
+.checkbox-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
 .expense-row {
     margin-bottom: 15px;
 }

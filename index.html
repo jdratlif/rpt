@@ -561,18 +561,34 @@
                                             id="annuity-primary-income" name="annuity-primary-income" value="0"
                                             placeholder="e.g., 0" />
                                     </div>
-                                    <div class="checkbox-group">
-                                        <label for="annuity-primary-inflation-adjusted">
-                                            <input type="checkbox" id="annuity-primary-inflation-adjusted"
-                                                name="annuity-primary-inflation-adjusted" />
-                                            Inflation Adjusted
-                                            <span class="tooltip">
-                                                ?
-                                                <span class="tooltip-text">Check if this annuity/pension has a
-                                                    cost-of-living rider, so it grows with inflation like Social
-                                                    Security instead of staying flat.</span>
-                                            </span>
-                                        </label>
+                                    <div class="checkbox-row">
+                                        <div class="checkbox-group">
+                                            <label for="annuity-primary-inflation-adjusted">
+                                                <input type="checkbox" id="annuity-primary-inflation-adjusted"
+                                                    name="annuity-primary-inflation-adjusted" />
+                                                Inflation Adjusted
+                                                <span class="tooltip">
+                                                    ?
+                                                    <span class="tooltip-text">Check if this annuity/pension has a
+                                                        cost-of-living rider, so it grows with inflation like Social
+                                                        Security instead of staying flat.</span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <div class="checkbox-group">
+                                            <label for="annuity-primary-survival-benefit">
+                                                <input type="checkbox" id="annuity-primary-survival-benefit"
+                                                    name="annuity-primary-survival-benefit" checked />
+                                                Spouse Inherits
+                                                <span class="tooltip">
+                                                    ?
+                                                    <span class="tooltip-text">Check if the spouse continues
+                                                        receiving this annuity/pension after the primary person
+                                                        dies. It's added to the spouse's own annuity income for the
+                                                        rest of the projection.</span>
+                                                </span>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="input-group">
