@@ -22,6 +22,7 @@
     - [What if I have pension income?](#what-if-i-have-pension-income)
     - [Is the annuity income adjusted for inflation?](#is-the-annuity-income-adjusted-for-inflation)
     - [What if my pension income is adjusted for inflation?](#what-if-my-pension-income-is-adjusted-for-inflation)
+    - [Does the primary's annuity/pension continue to the spouse after death?](#does-the-primarys-annuitypension-continue-to-the-spouse-after-death)
     - [What are RMDs?](#what-are-rmds)
     - [What is IRMAA?](#what-is-irmaa)
     - [Does this tool show the impact of the widow's penalty?](#does-this-tool-show-the-impact-of-the-widows-penalty)
@@ -114,7 +115,9 @@ When showing future (e.g. nominal) dollars, the values will match exactly.
 
 ### How are payroll taxes calculated?
 
-For other income, the tool assumes this is standard W-2 income and uses 7.65%.
+For other income, the tool assumes this is standard W-2 income and uses 7.65%, unless the
+"Self Employment" checkbox next to that person's Other Income amount is checked, in which
+case the full 15.3% self-employment rate is used instead.
 Payroll taxes are not applied to Social Security, Annuity/Pension, or non-Roth portfolio withdrawals.
 
 ### How does the Gross-Up Function estimate additional withdrawals required to account for taxes?
@@ -156,11 +159,22 @@ Use the annuity income section.
 
 ### Is the annuity income adjusted for inflation?
 
-No. I've never had an annuity, but my understanding is that most do not have an inflation rider.
+Not by default, since most annuities don't have an inflation rider.
+If yours does (or your pension has a COLA),
+check the "Inflation Adjusted" box next to that person's annuity amount and
+it will grow with inflation just like Social Security.
 
 ### What if my pension income is adjusted for inflation?
 
-Well, I hadn't considered that. Maybe I'll add it, or maybe you can submit a pull request.
+Check the "Inflation Adjusted" checkbox next to that person's annuity amount in the Annuity
+section -- pension income is entered there too.
+
+### Does the primary's annuity/pension continue to the spouse after death?
+
+By default, yes -- the "Spouse Inherits" checkbox next to the primary's annuity amount is
+checked by default, so if the primary dies (see Widow Age), that income is added to the
+spouse's own annuity income for the rest of the projection. Uncheck it if the
+annuity/pension has no survivor benefit and the payments simply stop.
 
 ### What are RMDs?
 
@@ -221,7 +235,8 @@ If you think taxes will be higher in the future, you can edit the tax tables in 
 It calculates the effect of inflation on dollar amounts in the portfolio, other income sources, and expenses.
 Expenses are increased by inflation each year.
 Portfolio gains are offset by inflation (i.e. 7% gains - 3% inflation = 4% real growth).
-Social Security and Other Income are increased by inflation, but annuity/pension income is not.
+Social Security and Other Income are increased by inflation, but annuity/pension income is not
+unless its "Inflation Adjusted" checkbox is checked.
 It's easier to understand the numbers in terms of today's dollars, because you know what things cost right now.
 
 ### Why do all these retirement scenarios assume you're married? What about the single people?

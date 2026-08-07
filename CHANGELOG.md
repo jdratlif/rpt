@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 1.5.0 - 2026-08-07
+
+- add "Self Employment" checkbox for Other Income (primary/spouse); when checked, the full
+  15.3% self-employment payroll tax is applied instead of the standard 7.65% employee share
+- add "Inflation Adjusted" checkbox for Annuity/pension income (primary/spouse); when
+  checked, that person's payment grows with inflation like Social Security instead of
+  staying flat
+- add "Spouse Inherits" checkbox for primary's Annuity/pension income (default checked);
+  when checked and the primary dies, that income carries on to the spouse instead of
+  stopping
+- add version label
+- update button colors and placement
+
 ## 1.4.0 - 2026-08-07
 
 - combine income projection tables
