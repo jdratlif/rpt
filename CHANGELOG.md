@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.1 - 2026-08-07
+
+- update IRMAA penalty to include part D surcharge
+
 ## 1.3.0 - 2006-08-06
 
 - treat excess RMD (beyond what's needed for expenses/taxes) as a Roth conversion instead of unmodeled spending

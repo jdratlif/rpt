@@ -12,7 +12,7 @@
   - [Usage](#usage)
   - [Frequently Asked Questions](#frequently-asked-questions)
     - [What is the point of this thing?](#what-is-the-point-of-this-thing)
-    - [After a withdrawal, it says the balance of that part of my portfolio (e.g. taxable) is $0, but it didn't withdraw all the money. Why?](#after-a-withdrawal-it-says-the-balance-of-that-part-of-my-portfolio-eg-taxable-is-0-but-it-didnt-withdraw-all-the-money-why)
+    - [After a withdrawal, it says the taxable/traditional/roth balance is $0, but it didn't withdraw all the money. Why?](#after-a-withdrawal-it-says-the-taxabletraditionalroth-balance-is-0-but-it-didnt-withdraw-all-the-money-why)
     - [How are payroll taxes calculated?](#how-are-payroll-taxes-calculated)
     - [How does the Gross-Up Function estimate additional withdrawals required to account for taxes?](#how-does-the-gross-up-function-estimate-additional-withdrawals-required-to-account-for-taxes)
     - [How are taxes calculated on taxable brokerage account withdrawals?](#how-are-taxes-calculated-on-taxable-brokerage-account-withdrawals)
@@ -103,9 +103,10 @@ People are really worried about RMDs, IRMAA, and the widow's penalty.
 They didn't seem as impactful as people said they were.
 So I decided to write a calculator based on what I've learned on YouTube.
 
-Along the way, I added a bunch more features based on things that were either personally applicable to me, or things I've seen in YouTube videos and comments.
+Along the way, I added a bunch more features based on things that were either personally applicable to me,
+or things I've seen in YouTube videos and comments.
 
-### After a withdrawal, it says the balance of that part of my portfolio (e.g. taxable) is $0, but it didn't withdraw all the money. Why?
+### After a withdrawal, it says the taxable/traditional/roth balance is $0, but it didn't withdraw all the money. Why?
 
 It will do this when showing in real (e.g. Today's) dollars because it accounted for inflation.
 When showing future (e.g. nominal) dollars, the values will match exactly.
@@ -138,12 +139,15 @@ They all work similarly enough that separating them out didn't seem worth it.
 The current balance of your portfolio is separated into stocks and bonds by percentage weight from the portfolio tab.
 Bonds are flatly increased by the bond percentage each year.
 By default, stocks are also flatly increased by the stock percentage each year.
-If you select 'Use Advanced Stock Returns', you can set the percentage return on a per-year basis to simulate any sequence of returns you want to model.
+If you select 'Use Advanced Stock Returns', you can set the percentage return on a per-year basis to simulate any
+sequence of returns you want to model.
 
 ### What does the Generate Sequence button do in the Advanced Stock Returns Dialog?
 
-They calculate an effective drop or raise in the portfolio over a defined period at the beginning of retirement to simulate sequence of returns risk.
-After the drop (or gain for a positive percentage), returns are increased (or lowered) to revert to the mean over the projection timeline.
+They calculate an effective drop or raise in the portfolio over a defined period at the beginning of retirement to
+simulate sequence of returns risk.
+After the drop (or gain for a positive percentage), returns are increased (or lowered) to revert to the mean over the
+projection timeline.
 
 ### What if I have pension income?
 
@@ -160,7 +164,8 @@ Well, I hadn't considered that. Maybe I'll add it, or maybe you can submit a pul
 ### What are RMDs?
 
 Required Minimum Distributions.
-The government mandates that you withdraw a certain percentage of your pre-tax accounts every year once you reach a certain age (73 for most people) whether you want it or not.
+The government mandates that you withdraw a certain percentage of your pre-tax accounts every year once you reach a
+certain age (73 for most people) whether you want it or not.
 This can increase taxes for people later in life if they have large pre-tax balances.
 
 ### What is IRMAA?
@@ -171,12 +176,14 @@ It's an additional medicare premium for high earners based on their income from 
 ### Does this tool show the impact of the widow's penalty?
 
 Yes.
-If you checked Married in the Ages section and set a widow age, the primary will be considered to have died the year the spouse reaches the widow age.
+If you checked Married in the Ages section and set a widow age, the primary will be considered to have died the year the
+spouse reaches the widow age.
 In all of the projection tables under Ages, when the spouse is a widow, you will see a grave marker for the primary.
 On the taxes projection, you will see filing status change from MFJ ro Single.
 You can see how the marginal and effective tax rates for that year differ from the previous year.
 This has been dubbed the widow's penalty, because you probably have similar income, but in the smaller single tax brackets.
-In the default scenario, the primary passes away when the spouse is 78, the marginal rate goes from 12->22%, and the effective rate jumps from 8.6%->12.1%.
+In the default scenario, the primary passes away when the spouse is 78, the marginal rate goes from 12->22%, and the
+effective rate jumps from 8.6%->12.1%.
 
 ### Why are the XYZ expenses so low? No one can live on that! Medical alone is like $15,000/year!
 
@@ -192,7 +199,8 @@ The idea is to put your expense floor in the monthly expenses.
 These are the things you need just to live (e.g. housing, food, transportation).
 Some expenses are temporary.
 You may be paying off a mortgage or car loan.
-Once the mortgage is paid off, you still have property taxes, insurance and maintenance, so maybe you put that in general and put the non-escrow portion as a temporary expense.
+Once the mortgage is paid off, you still have property taxes, insurance and maintenance, so maybe you put that in general
+and put the non-escrow portion as a temporary expense.
 You might want to account for a larger travel budget early in retirement when you're more healthy.
 It's basically to get a better estimate of expenses, which are almost certainly not fixed for 30+ years.
 
@@ -250,7 +258,8 @@ To go beyond that, you have to pay for Boldin or Projection Lab, and they're pre
 I wanted a middle ground, and although AI wrote all the code, I designed it.
 I'd like there to be one place for this.
 If you want a feature that doesn't exist, make a pull request and everyone can benefit.
-It's licensed under the Creative Commons, so as long as you credit me and don't sell it (which includes putting it on a webpage with ads), you can do that.
+It's licensed under the Creative Commons, so as long as you credit me and don't sell it
+(which includes putting it on a webpage with ads), you can do that.
 I like open source, but I really don't want 20 versions of this in different states.
 It's on public github.
 I released it to the public.
