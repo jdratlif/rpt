@@ -1902,16 +1902,13 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
             }
 
             // RMD-excess-to-Roth: cash the RMD forced out of Traditional beyond what
-            // expenses needed, net of its own estimated tax (same one-shot federal-
-            // bracket + state-rate estimate as the Roth Conversion feature above --
-            // it's ordinary income stacking on the rest of the traditional withdrawal,
-            // already taxed for real by calculateTaxYear below). Per user's choice,
-            // this replaces the old behavior of letting the excess vanish as unmodeled
-            // surplus spending.
-            const rmdExcessMarginalRate = Math.min(0.9, estimateWithdrawalMarginalRate(
-                'traditional', baseTaxRow, taxContextBase.stateTaxRate, taxContextBase.taxableBasisFraction
-            ));
-            const rmdExcessNet = baseWithdrawal.rmdExcessNominal * (1 - rmdExcessMarginalRate);
+            // expenses needed. The full gross excess is available (the actual tax on
+            // it is already computed by calculateTaxYear below). It first covers any
+            // tax bill not already covered by income surplus; only the remainder is
+            // deposited to Roth. Previously this netted the excess against a one-shot
+            // marginal-rate estimate, but that double-counted tax because the tax
+            // table already includes the full RMD.
+            const rmdExcessNet = baseWithdrawal.rmdExcessNominal;
             // If Gross-Up for Taxes is also on, this net cash is fungible with the other
             // surplus used to cover the tax bill (per user's choice) -- only reduced by
             // the gross-up branch below, never increased; whatever's left afterward is
