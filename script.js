@@ -1413,18 +1413,19 @@ function estimateWithdrawalMarginalRate(source, taxResult, stateTaxRate, taxable
     return (1 - taxableBasisFraction) * (ltcgRate + niitRate + stateTaxRate);
 }
 
-// 2026 Medicare Part B IRMAA tiers (ssa.gov): the surcharge added on top of the
-// base Part B premium once MAGI exceeds each threshold. The surcharge dollar
-// amounts are the same for both filing statuses; only the MAGI breakpoints differ.
-// Part D also carries an IRMAA surcharge, but it's not modeled since this app
-// doesn't have a base Part D premium input (it varies too widely by plan).
+// 2026 Medicare Part B and Part D IRMAA tiers (CMS fact sheet): the surcharges
+// added on top of the beneficiary's premiums once MAGI exceeds each threshold.
+// Both parts share the same MAGI breakpoints. The Part D surcharge is a flat
+// add-on collected the same way regardless of which plan (and base premium) a
+// beneficiary has, so it's included even though this app doesn't model a base
+// Part D premium (it varies too widely by plan).
 const IRMAA_PART_B_TIERS = [
-    { singleMagiOver: 0, mfjMagiOver: 0, surcharge: 0 },
-    { singleMagiOver: 109000, mfjMagiOver: 218000, surcharge: 81.20 },
-    { singleMagiOver: 137000, mfjMagiOver: 274000, surcharge: 202.90 },
-    { singleMagiOver: 171000, mfjMagiOver: 342000, surcharge: 324.60 },
-    { singleMagiOver: 205000, mfjMagiOver: 410000, surcharge: 446.30 },
-    { singleMagiOver: 500000, mfjMagiOver: 750000, surcharge: 487.00 },
+    { singleMagiOver: 0, mfjMagiOver: 0, partBSurcharge: 0, partDSurcharge: 0 },
+    { singleMagiOver: 109000, mfjMagiOver: 218000, partBSurcharge: 81.20, partDSurcharge: 14.50 },
+    { singleMagiOver: 137000, mfjMagiOver: 274000, partBSurcharge: 202.90, partDSurcharge: 37.50 },
+    { singleMagiOver: 171000, mfjMagiOver: 342000, partBSurcharge: 324.60, partDSurcharge: 60.40 },
+    { singleMagiOver: 205000, mfjMagiOver: 410000, partBSurcharge: 446.30, partDSurcharge: 83.30 },
+    { singleMagiOver: 500000, mfjMagiOver: 750000, partBSurcharge: 487.00, partDSurcharge: 91.00 },
 ];
 
 // IRMAA is assessed using MAGI from 2 tax years prior, which conveniently avoids
@@ -1434,13 +1435,14 @@ const IRMAA_LOOKBACK_YEARS = 2;
 
 // Thresholds and surcharge dollar amounts are inflated to the premium year's
 // nominal dollars (nominalFactor), the same convention used for tax brackets;
-// magi is assumed already expressed in that same year's nominal terms.
+// magi is assumed already expressed in that same year's nominal terms. Returns
+// the combined Part B + Part D surcharge, since both are billed the same way.
 function getIrmaaMonthlySurcharge(magi, filingStatus, nominalFactor) {
     let surcharge = 0;
     for (const tier of IRMAA_PART_B_TIERS) {
         const threshold = (filingStatus === 'mfj' ? tier.mfjMagiOver : tier.singleMagiOver) * nominalFactor;
         if (magi > threshold) {
-            surcharge = tier.surcharge * nominalFactor;
+            surcharge = (tier.partBSurcharge + tier.partDSurcharge) * nominalFactor;
         }
     }
     return surcharge;
