@@ -272,4 +272,4 @@ framework.
 Source code is available on [GitHub](https://github.com/jdratlif/rpt).
 
 This project was vibe coded with [GitHub Copilot](https://github.com/features/copilot) using
-Qwen Coder 3, Claude Sonnet 5, and Kimi K2.7 Code.
+Qwen Coder 3, GPT OSS 120b, Claude Sonnet 5, and Kimi K2.7 Code.
