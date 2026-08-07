@@ -84,13 +84,11 @@
                                         <span class="tooltip">
                                             ?
                                             <span class="tooltip-text">Age at which spouse becomes a widow and filing
-                                                status
-                                                switches to Single. Ignored (and disabled) when "Married / Filing With a
-                                                Spouse" above is unchecked.</span>
+                                                status switches to Single. Disabled when Married is unchecked.</span>
                                         </span>
                                     </label>
                                     <input type="number" id="widow-age" name="widow-age" min="0" max="120" value="78"
-                                        placeholder="e.g., 85" />
+                                        placeholder="e.g., 78" />
                                 </div>
                             </div>
                         </div>
@@ -105,7 +103,7 @@
                                         </span>
                                     </label>
                                     <input type="number" id="primary-current-age" name="primary-current-age" min="1"
-                                        max="120" value="55" placeholder="e.g., 45" />
+                                        max="120" value="55" placeholder="e.g., 55" />
                                 </div>
                                 <div class="input-group">
                                     <label for="primary-social-security-age">Social Security Age
@@ -123,8 +121,7 @@
                                         <span class="tooltip">
                                             ?
                                             <span class="tooltip-text">Age at which annuity/pension payments begin. Set
-                                                annuity
-                                                income to 0 if no annuity/pension.</span>
+                                                to 0 if no annuity/pension.</span>
                                         </span>
                                     </label>
                                     <input type="number" id="primary-annuity-age" name="primary-annuity-age" min="1"
@@ -134,8 +131,8 @@
                                     <label for="primary-other-income-start-age">Other Income Start Age
                                         <span class="tooltip">
                                             ?
-                                            <span class="tooltip-text">Age at which part-time/side-hustle income
-                                                begins. Set the monthly amount to 0 if not applicable.</span>
+                                            <span class="tooltip-text">Age at which other income begins. Ignored if
+                                                other income is 0.</span>
                                         </span>
                                     </label>
                                     <input type="number" id="primary-other-income-start-age"
@@ -146,8 +143,8 @@
                                     <label for="primary-other-income-stop-age">Other Income Stop Age
                                         <span class="tooltip">
                                             ?
-                                            <span class="tooltip-text">Last age at which part-time/side-hustle income
-                                                is received.</span>
+                                            <span class="tooltip-text">Last age at which other income is
+                                                received.</span>
                                         </span>
                                     </label>
                                     <input type="number" id="primary-other-income-stop-age"
@@ -165,7 +162,7 @@
                                         </span>
                                     </label>
                                     <input type="number" id="spouse-current-age" name="spouse-current-age" min="1"
-                                        max="120" value="53" placeholder="e.g., 42" />
+                                        max="120" value="53" placeholder="e.g., 53" />
                                 </div>
                                 <div class="input-group">
                                     <label for="spouse-social-security-age">Social Security Age
@@ -182,9 +179,8 @@
                                     <label for="spouse-annuity-age">Annuity Age
                                         <span class="tooltip">
                                             ?
-                                            <span class="tooltip-text">Age at which annuity/pension payments begin. Set
-                                                annuity
-                                                income to 0 if no annuity/pension.</span>
+                                            <span class="tooltip-text">Age at which annuity/pension payments begin.
+                                                Ignored if annuity income is 0.</span>
                                         </span>
                                     </label>
                                     <input type="number" id="spouse-annuity-age" name="spouse-annuity-age" min="1"
@@ -194,8 +190,8 @@
                                     <label for="spouse-other-income-start-age">Other Income Start Age
                                         <span class="tooltip">
                                             ?
-                                            <span class="tooltip-text">Age at which part-time/side-hustle income
-                                                begins. Set the monthly amount to 0 if not applicable.</span>
+                                            <span class="tooltip-text">Age at which other income begins. Ignored if
+                                                other income is 0.</span>
                                         </span>
                                     </label>
                                     <input type="number" id="spouse-other-income-start-age"
@@ -206,8 +202,8 @@
                                     <label for="spouse-other-income-stop-age">Other Income Stop Age
                                         <span class="tooltip">
                                             ?
-                                            <span class="tooltip-text">Last age at which part-time/side-hustle income
-                                                is received.</span>
+                                            <span class="tooltip-text">Last age at which other income is
+                                                received.</span>
                                         </span>
                                     </label>
                                     <input type="number" id="spouse-other-income-stop-age"
@@ -239,12 +235,12 @@
                                 </div>
                                 <div class="input-group checkbox-group">
                                     <label for="todays-dollars">
-                                        <input type="checkbox" id="todays-dollars" name="todays-dollars" />
-                                        Show in Today's Dollars
+                                        <input type="checkbox" id="todays-dollars" name="todays-dollars" checked />
+                                        Show in Real Dollars
                                         <span class="tooltip">
                                             ?
-                                            <span class="tooltip-text">Show projections deflated to today's dollar
-                                                value</span>
+                                            <span class="tooltip-text">Deflate dollars to show values in today's
+                                                purchasing power.</span>
                                         </span>
                                     </label>
                                 </div>
@@ -286,9 +282,8 @@
                                         <span class="tooltip">
                                             ?
                                             <span class="tooltip-text">Estimated percentage of the taxable account that
-                                                is
-                                                cost basis (not subject to tax); the remainder is treated as long term
-                                                capital gains</span>
+                                                is cost basis (not subject to tax); the remainder is treated as long
+                                                term capital gains</span>
                                         </span>
                                     </label>
                                     <div class="percent-input-wrapper">
@@ -305,16 +300,8 @@
                                         Gross-Up Withdrawals for Taxes
                                         <span class="tooltip">
                                             ?
-                                            <span class="tooltip-text">Withdraw extra from the portfolio each year to
-                                                cover
-                                                the tax bill the withdrawal itself generates, instead of assuming taxes
-                                                are
-                                                paid from outside cash. Uses a one-shot marginal-rate estimate rather
-                                                than an
-                                                exact solve, so it may slightly under- or over-shoot (e.g. right at a
-                                                bracket
-                                                boundary, or when a withdrawal pushes more Social Security into
-                                                taxability).</span>
+                                            <span class="tooltip-text">Pull extra from the portfolio to cover the
+                                                estimated tax bill.</span>
                                         </span>
                                     </label>
                                     <button type="button" id="open-tax-tables-btn" class="link-button">Edit Tax Tables
@@ -357,8 +344,8 @@
                                     </label>
                                     <div class="percent-input-wrapper">
                                         <input type="text" inputmode="decimal" class="percent-input"
-                                            id="stock-percentage" name="stock-percentage" value="70"
-                                            placeholder="e.g., 70" />
+                                            id="stock-percentage" name="stock-percentage" value="60"
+                                            placeholder="e.g., 60" />
                                         <span class="percent-symbol">%</span>
                                     </div>
                                 </div>
@@ -372,8 +359,8 @@
                                     </label>
                                     <div class="percent-input-wrapper">
                                         <input type="text" inputmode="decimal" class="percent-input"
-                                            id="bond-percentage" name="bond-percentage" value="30"
-                                            placeholder="e.g., 30" disabled />
+                                            id="bond-percentage" name="bond-percentage" value="40"
+                                            placeholder="e.g., 40" disabled />
                                         <span class="percent-symbol">%</span>
                                     </div>
                                 </div>
@@ -386,16 +373,15 @@
                                     <label for="traditional-retirement-balance">Traditional
                                         <span class="tooltip">
                                             ?
-                                            <span class="tooltip-text">Current balance in traditional retirement
-                                                accounts (401k,
-                                                IRA, etc.)</span>
+                                            <span class="tooltip-text">Current balance in pre-tax retirement accounts
+                                                (401k, IRA, etc.)</span>
                                         </span>
                                     </label>
                                     <div class="currency-input-wrapper">
                                         <span class="currency-symbol">$</span>
                                         <input type="text" inputmode="decimal" class="currency-input"
                                             id="traditional-retirement-balance" name="traditional-retirement-balance"
-                                            value="1000000" placeholder="e.g., 1,000,000" />
+                                            value="1325000" placeholder="e.g., 1,000,000" />
                                     </div>
                                 </div>
                                 <div class="input-group">
@@ -403,9 +389,7 @@
                                         <span class="tooltip">
                                             ?
                                             <span class="tooltip-text">Current balance in Roth retirement accounts (Roth
-                                                IRA,
-                                                Roth
-                                                401k, etc.)</span>
+                                                IRA/401(k), etc).</span>
                                         </span>
                                     </label>
                                     <div class="currency-input-wrapper">
@@ -534,16 +518,14 @@
                                         <span class="tooltip">
                                             ?
                                             <span class="tooltip-text">Expected monthly Social Security retirement
-                                                benefit at
-                                                full
-                                                retirement age</span>
+                                                benefit at full retirement age</span>
                                         </span>
                                     </label>
                                     <div class="currency-input-wrapper">
                                         <span class="currency-symbol">$</span>
                                         <input type="text" inputmode="decimal" class="currency-input"
                                             id="social-security-primary-benefit" name="social-security-primary-benefit"
-                                            value="2500" placeholder="e.g., 2,000" />
+                                            value="2500" placeholder="e.g., 2,500" />
                                     </div>
                                 </div>
                                 <div class="input-group">
@@ -551,9 +533,7 @@
                                         <span class="tooltip">
                                             ?
                                             <span class="tooltip-text">Expected monthly Social Security retirement
-                                                benefit at
-                                                full
-                                                retirement age</span>
+                                                benefit at full retirement age</span>
                                         </span>
                                     </label>
                                     <div class="currency-input-wrapper">
@@ -561,7 +541,7 @@
                                         <input type="text" inputmode="decimal" class="currency-input"
                                             id="social-security-secondary-benefit"
                                             name="social-security-secondary-benefit" value="2000"
-                                            placeholder="e.g., 1,000" />
+                                            placeholder="e.g., 2,000" />
                                     </div>
                                 </div>
                             </div>
@@ -572,9 +552,7 @@
                                         <span class="tooltip">
                                             ?
                                             <span class="tooltip-text">Monthly annuity/pension income for the primary
-                                                person.
-                                                Set
-                                                to 0 if no annuity/pension.</span>
+                                                person. Set to 0 if no annuity/pension.</span>
                                         </span>
                                     </label>
                                     <div class="currency-input-wrapper">
@@ -589,9 +567,7 @@
                                         <span class="tooltip">
                                             ?
                                             <span class="tooltip-text">Monthly annuity/pension income for the secondary
-                                                person.
-                                                Set
-                                                to 0 if no annuity/pension.</span>
+                                                person. Set to 0 if no annuity/pension.</span>
                                         </span>
                                     </label>
                                     <div class="currency-input-wrapper">
@@ -666,16 +642,15 @@
                                             <span class="tooltip">
                                                 ?
                                                 <span class="tooltip-text">Estimated additional monthly healthcare costs
-                                                    before
-                                                    Medicare eligibility. Will no longer be included when primary is
-                                                    65.</span>
+                                                    before Medicare eligibility. Will no longer be included when primary
+                                                    is 65.</span>
                                             </span>
                                         </label>
                                         <div class="currency-input-wrapper">
                                             <span class="currency-symbol">$</span>
                                             <input type="text" inputmode="decimal" class="currency-input"
                                                 id="pre-medicare-expenses-primary" name="pre-medicare-expenses-primary"
-                                                value="800" placeholder="e.g., 1,500" />
+                                                value="1000" placeholder="e.g., 1,000" />
                                         </div>
                                     </div>
                                     <div class="input-group">
@@ -683,16 +658,15 @@
                                             <span class="tooltip">
                                                 ?
                                                 <span class="tooltip-text">Estimated additional monthly healthcare costs
-                                                    before
-                                                    Medicare eligibility. Will no longer be included when Spouse is
-                                                    65.</span>
+                                                    before Medicare eligibility. Will no longer be included when Spouse
+                                                    is 65.</span>
                                             </span>
                                         </label>
                                         <div class="currency-input-wrapper">
                                             <span class="currency-symbol">$</span>
                                             <input type="text" inputmode="decimal" class="currency-input"
                                                 id="pre-medicare-expenses-spouse" name="pre-medicare-expenses-spouse"
-                                                value="800" placeholder="e.g., 1,500" />
+                                                value="1000" placeholder="e.g., 1,000" />
                                         </div>
                                     </div>
                                 </div>
@@ -700,18 +674,15 @@
                                     <label for="medicare-part-b-premium">Medicare Premiums
                                         <span class="tooltip">
                                             ?
-                                            <span class="tooltip-text">Base Medicare Part B premium, applied per person
-                                                once
-                                                they turn 65. IRMAA surcharges for high earners are added automatically
-                                                based
-                                                on projected income from 2 years prior.</span>
+                                            <span class="tooltip-text">Base Medicare premiums, applied per person.
+                                            </span>
                                         </span>
                                     </label>
                                     <div class="currency-input-wrapper">
                                         <span class="currency-symbol">$</span>
                                         <input type="text" inputmode="decimal" class="currency-input"
                                             id="medicare-part-b-premium" name="medicare-part-b-premium" value="235"
-                                            placeholder="e.g., 202.90" />
+                                            placeholder="e.g., 235" />
                                     </div>
                                 </div>
                                 <h3 class="person-title">Annuitized
@@ -729,10 +700,8 @@
                                                 <span class="tooltip">
                                                     ?
                                                     <span class="tooltip-text">Monthly mortgage payment ending when the
-                                                        primary
-                                                        reaches the specified age. Enter 0 if the mortgage will be paid
-                                                        off
-                                                        before retirement.</span>
+                                                        primary reaches the specified age. Enter 0 if the mortgage will
+                                                        be paid off before retirement.</span>
                                                 </span>
                                             </label>
                                             <div class="currency-input-wrapper">
@@ -751,7 +720,7 @@
                                                 </span>
                                             </label>
                                             <input type="number" id="annuitized-mortgage-end-age"
-                                                name="annuitized-mortgage-end-age" min="1" max="120" value="75"
+                                                name="annuitized-mortgage-end-age" min="1" max="120" value="70"
                                                 placeholder="e.g., 75" />
                                         </div>
                                     </div>
@@ -763,8 +732,7 @@
                                                 <span class="tooltip">
                                                     ?
                                                     <span class="tooltip-text">Monthly auto loan payment ending when the
-                                                        primary
-                                                        reaches the specified age.</span>
+                                                        primary reaches the specified age.</span>
                                                 </span>
                                             </label>
                                             <div class="currency-input-wrapper">
@@ -780,8 +748,7 @@
                                                 <span class="tooltip">
                                                     ?
                                                     <span class="tooltip-text">Age at which the primary auto loan is
-                                                        paid
-                                                        off and the payment stops</span>
+                                                        paid off and the payment stops</span>
                                                 </span>
                                             </label>
                                             <input type="number" id="annuitized-primary-auto-end-age"
@@ -797,8 +764,7 @@
                                                 <span class="tooltip">
                                                     ?
                                                     <span class="tooltip-text">Monthly auto loan payment ending when the
-                                                        spouse
-                                                        reaches the specified age. Ignored when no spouse is
+                                                        spouse reaches the specified age. Ignored when no spouse is
                                                         selected.</span>
                                                 </span>
                                             </label>
@@ -830,9 +796,8 @@
                                 <h3 class="person-title">Temporary
                                     <span class="tooltip">
                                         ?
-                                        <span class="tooltip-text">Expenses that do not span the length of retirement,
-                                            e.g.
-                                            loans or property taxes and insurance after paying off a mortgage.</span>
+                                        <span class="tooltip-text">Time limited expenses, such as increase spending in
+                                            early retirement, or late retirement medical costs</span>
                                     </span>
                                 </h3>
                                 <div class="expense-row-list" id="temporary-expenses-list">
@@ -897,7 +862,7 @@
                                     <span class="tooltip">
                                         ?
                                         <span class="tooltip-text">Expenses that occur a single time in a specific
-                                            projection year, e.g. a large purchase or trip.</span>
+                                            projection year, e.g. a large purchase (HVAC, Roof, Car) or vacation.</span>
                                     </span>
                                 </h3>
                                 <div class="expense-row-list" id="one-time-expenses-list">
