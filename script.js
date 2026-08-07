@@ -1157,7 +1157,8 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
 
     taxableWithdrawal += grossUpFromTaxable;
     traditionalWithdrawal += grossUpFromTraditional;
-    traditionalWithdrawalDisplay += grossUpFromTraditional;
+    // Keep tax gross-up out of the displayed Traditional column so the columns
+    // are consistent: Total = Taxable + Roth + Tax Gross Up + max(RMD, Trad).
     rothWithdrawal += grossUpFromRoth;
     const taxGrossUpWithdrawal = grossUpFromTaxable + grossUpFromTraditional + grossUpFromRoth;
 
@@ -1213,18 +1214,17 @@ function calculateWithdrawalYear(yearIndex, context, accounts) {
         hasSpouse: context.hasSpouse,
         isWidowed: context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge,
         rmdAmount: rmdAmount * deflationFactor,
-        // Flags years where the RMD forced the real traditional withdrawal (below)
-        // above what's shown in the Traditional column, so the two aren't confused.
+        // Flags years where the RMD forced the real traditional withdrawal above
+        // what expenses/conversion alone would have required.
         rmdExceedsShortfall: rmdAmount > traditionalWithdrawalDisplay,
         taxableWithdrawal: taxableWithdrawal * deflationFactor,
-        // Deliberately NOT the same as traditionalWithdrawalNominal below when the
-        // RMD forces a bigger real withdrawal -- this shows what would have been
-        // withdrawn for spending/gross-up/conversion alone, so it doesn't just
-        // parrot the RMD figure back; Total/Balance/Tax still use the real amount.
+        // Base Traditional withdrawal for spending/conversion, excluding tax gross-up.
+        // The Tax Gross Up column shows that separately, so Total = Taxable + Roth +
+        // Tax Gross Up + max(RMD, Traditional).
         traditionalWithdrawal: traditionalWithdrawalDisplay * deflationFactor,
         rothWithdrawal: rothWithdrawal * deflationFactor,
-        // Already included in the three withdrawal figures above; broken out here
-        // just so it's visible how much of the withdrawal was for taxes vs. spending.
+        // Extra withdrawal specifically to cover taxes; shown separately from the
+        // base Taxable/Traditional/Roth columns.
         taxGrossUpWithdrawal: taxGrossUpWithdrawal * deflationFactor,
         // Net amount that actually landed in Roth -- combines the deliberate Roth
         // Conversion feature and the RMD-excess-to-Roth deposit (both shown in the
