@@ -780,3 +780,9 @@ input[type="number"]:disabled {
 .copyright-notice a:hover {
     text-decoration: underline;
 }
+
+.version-label {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: #999;
+}
