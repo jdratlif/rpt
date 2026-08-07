@@ -93,7 +93,8 @@ updateBondPercentage();
 // one to get a clean Single-filer projection.
 const SPOUSE_ONLY_INPUT_IDS = [
     'widow-age', 'spouse-current-age', 'spouse-social-security-age', 'spouse-annuity-age',
-    'social-security-secondary-benefit', 'annuity-secondary-income', 'pre-medicare-expenses-spouse',
+    'social-security-secondary-benefit', 'annuity-secondary-income', 'annuity-secondary-inflation-adjusted',
+    'pre-medicare-expenses-spouse',
     'spouse-other-income-start-age', 'spouse-other-income-stop-age', 'other-income-secondary-amount',
     'annuitized-spouse-auto-amount', 'annuitized-spouse-auto-end-age',
 ];
@@ -895,9 +896,12 @@ function renderExpenseProjectionTable(rows) {
     });
 }
 
-// Annuity payments are fixed nominal amounts once they start (no inflation raises).
-// So in nominal mode the payment stays flat, but in "today's dollars" mode its
-// purchasing power shrinks over time, so we deflate it instead of inflating it.
+// Annuity payments are fixed nominal amounts once they start (no inflation raises),
+// unless the per-person "Inflation Adjusted" checkbox is checked, in which case that
+// person's payment gets automatic COLA increases just like Social Security. So a
+// non-adjusted payment stays flat in nominal mode and shrinks in "today's dollars"
+// mode (deflated), while an adjusted payment stays flat in today's-dollars mode and
+// grows in nominal mode (inflated) -- same convention as calculateSocialSecurityYear.
 function calculateAnnuityYear(yearIndex, context) {
     const primaryAge = context.retirementAge + (yearIndex - 1);
     const spouseAge = context.spouseAgeAtRetirement + (yearIndex - 1);
@@ -913,9 +917,16 @@ function calculateAnnuityYear(yearIndex, context) {
     }
 
     const yearsFromToday = context.yearsToRetirement + (yearIndex - 1);
-    const deflationFactor = context.showTodaysDollars
-        ? 1 / Math.pow(1 + context.inflationRate, yearsFromToday)
-        : 1;
+    const nominalFactor = Math.pow(1 + context.inflationRate, yearsFromToday);
+    const deflationFactor = context.showTodaysDollars ? 1 / nominalFactor : 1;
+    const inflationFactor = context.showTodaysDollars ? 1 : nominalFactor;
+
+    // Each person's own checkbox picks which convention (and which nominal-dollar
+    // scaling) applies to their own payment.
+    const primaryDisplayFactor = context.primaryAnnuityInflationAdjusted ? inflationFactor : deflationFactor;
+    const spouseDisplayFactor = context.spouseAnnuityInflationAdjusted ? inflationFactor : deflationFactor;
+    const primaryNominalFactor = context.primaryAnnuityInflationAdjusted ? nominalFactor : 1;
+    const spouseNominalFactor = context.spouseAnnuityInflationAdjusted ? nominalFactor : 1;
 
     return {
         year: yearIndex,
@@ -923,11 +934,10 @@ function calculateAnnuityYear(yearIndex, context) {
         spouseAge,
         hasSpouse: context.hasSpouse,
         isWidowed: context.hasSpouse && context.widowAge > 0 && spouseAge >= context.widowAge,
-        primaryAnnuity: primaryAnnuity * deflationFactor,
-        spouseAnnuity: spouseAnnuity * deflationFactor,
-        total: (primaryAnnuity + spouseAnnuity) * deflationFactor,
-        // Already nominal (flat, non-COLA'd) -- no factor needed for the withdrawal simulation.
-        totalNominal: primaryAnnuity + spouseAnnuity,
+        primaryAnnuity: primaryAnnuity * primaryDisplayFactor,
+        spouseAnnuity: spouseAnnuity * spouseDisplayFactor,
+        total: primaryAnnuity * primaryDisplayFactor + spouseAnnuity * spouseDisplayFactor,
+        totalNominal: primaryAnnuity * primaryNominalFactor + spouseAnnuity * spouseNominalFactor,
     };
 }
 
@@ -1710,6 +1720,8 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         spouseAnnuityAge: parseFloat(document.getElementById('spouse-annuity-age').value) || 0,
         primaryAnnuityIncome: parseCurrencyInput(document.getElementById('annuity-primary-income')),
         spouseAnnuityIncome: parseCurrencyInput(document.getElementById('annuity-secondary-income')),
+        primaryAnnuityInflationAdjusted: document.getElementById('annuity-primary-inflation-adjusted').checked,
+        spouseAnnuityInflationAdjusted: document.getElementById('annuity-secondary-inflation-adjusted').checked,
     };
 
     const annuityRows = [];
