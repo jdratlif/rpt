@@ -741,7 +741,10 @@ function depositToAccount(account, amount) {
 
 // Formats a plain number as whole-dollar currency for read-only result display.
 function formatResultCurrency(value) {
-    return `$${Math.round(value).toLocaleString()}`;
+    const rounded = Math.round(value);
+    // Convert -0 to 0 to avoid displaying $-0
+    const normalized = Object.is(rounded, -0) ? 0 : rounded;
+    return `$${normalized.toLocaleString()}`;
 }
 
 // Formats a 0-1 fraction as a percentage for read-only result display.
