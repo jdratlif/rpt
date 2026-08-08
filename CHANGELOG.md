@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.5.1 - 2026-08-07
+
+- narrow the projection columns
+- fix negative $0 displays
+- tweak the scenario defaults
+
 ## 1.5.0 - 2026-08-07
 
 - add "Self Employment" checkbox for Other Income (primary/spouse); when checked, the full
